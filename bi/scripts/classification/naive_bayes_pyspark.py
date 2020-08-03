@@ -1,72 +1,52 @@
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
 import json
 import time
 from datetime import datetime
-from sklearn.metrics import roc_curve, auc, roc_auc_score,log_loss
-import pandas as pd
-import numpy as np
 import humanize
 try:
-    import pickle as pickle
+    import cPickle as pickle
 except:
     import pickle
 
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
-from bi.narratives import utils as NarrativesUtils
 from bi.algorithms import utils as MLUtils
 from bi.algorithms import DecisionTrees
 from bi.common import DataFrameHelper
-from bi.stats.frequency_dimensions import FreqDimensions
-from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
-from bi.stats.chisquare import ChiSquare
-from bi.narratives.chisquare import ChiSquareNarratives
-from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
-from pyspark.ml.evaluation import BinaryClassificationEvaluator
-from pyspark.ml.feature import IndexToString
-from pyspark.sql.functions import udf,col
-from pyspark.sql.types import *
-
-from pyspark.ml.classification import LogisticRegression, OneVsRest
-from pyspark2pmml import PMMLBuilder
-
-from pyspark.sql import SQLContext
-from bi.common import utils as CommonUtils
-from bi.algorithms import utils as MLUtils
-from bi.common import DataFrameHelper
+from bi.common import NormalChartData, ChartJson, ScatterChartData
 from bi.common import MLModelSummary, NormalCard, KpiData, C3ChartData, HtmlData
-from bi.common import NormalChartData, ChartJson
-from bi.common import PySparkTrainTestResult, PySparkGridSearchResult
-from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
+from bi.common import SklearnGridSearchResult, SkleanrKFoldResult
+from bi.common.mlmodelclasses import PySparkGridSearchResult, PySparkTrainTestResult
+from bi.algorithms import DecisionTrees
 
 from bi.stats.frequency_dimensions import FreqDimensions
 from bi.narratives.dimension.dimension_column import DimensionColumnNarrative
 from bi.stats.chisquare import ChiSquare
 from bi.narratives.chisquare import ChiSquareNarratives
+from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 from bi.algorithms import GainLiftKS
 from bi.common import NarrativesTree
+from bi.narratives import utils as NarrativesUtils
 
+from pyspark.ml.classification import NaiveBayes
 from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
 from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
 from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetrics
 from pyspark.ml.feature import IndexToString
-from pyspark.sql.functions import udf
+from pyspark.sql.functions import udf,col
 from pyspark.sql.types import *
+from bi.narratives.decisiontree.decision_tree import DecisionTreeNarrative
 
 from bi.settings import setting as GLOBALSETTINGS
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel
+from pyspark2pmml import PMMLBuilder
 
-from py4j.protocol import Py4JError
+from sklearn.metrics import roc_curve, auc, roc_auc_score,log_loss
+import pandas as pd
+import numpy as np
 
-
-
-
-class LogisticRegressionPysparkScript(object):
+class NaiveBayesPysparkScript(object):
     def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter, meta_parser, mlEnvironment="pyspark"):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
@@ -78,28 +58,29 @@ class LogisticRegressionPysparkScript(object):
         self._spark = spark
         self._model_summary =  MLModelSummary()
         self._score_summary = {}
-        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["logisticregression"]
-        self._targetLevel = self._dataframe_context.get_target_level_for_model()
-        #self._model_summary = {"confusion_matrix":{},"precision_recall_stats":{},"FrequencySummary":{},"ChiSquare":{}}
+        self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["naive bayes"]
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
+        self._targetLevel = self._dataframe_context.get_target_level_for_model()
+        self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._completionStatus = self._dataframe_context.get_completion_status()
+        print(self._completionStatus,"initial completion status")
         self._analysisName = self._slug
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
-        self._classifier = "lr"
+        # self._classifier = "nb"
 
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Logistic Regression Scripts",
+                "summary":"Initialized the Naive Bayes Scripts",
                 "weight":4
                 },
             "training":{
-                "summary":"Logistic Regression Model Training Started",
+                "summary":"Naive Bayes Model Training Started",
                 "weight":2
                 },
             "completion":{
-                "summary":"Logistic Regression Model Training Finished",
+                "summary":"Naive Bayes Model Training Finished",
                 "weight":4
                 },
             }
@@ -129,7 +110,7 @@ class LogisticRegressionPysparkScript(object):
         if model_path.startswith("file"):
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
-
+        print("model_path",model_path)
         pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
         model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
@@ -153,42 +134,54 @@ class LogisticRegressionPysparkScript(object):
         # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
 
 
+        # Label Mapping and Inverse
         labelIdx = labelIndexer.fit(trainingData)
         labelMapping = {k:v for k, v in enumerate(labelIdx.labels)}
         inverseLabelMapping = {v:float(k) for k, v in enumerate(labelIdx.labels)}
 
-
-        if self._classifier == "lr":
-            if levels == 2:
-                clf = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8)
-            elif levels > 2:
-                clf = LogisticRegression(maxIter=10, regParam=0.3, elasticNetParam=0.8,family="multinomial")
-            #fit = lr.fit(trainingData)
-        elif self._classifier == "OneVsRest":
-            lr = LogisticRegression()
-            clf = OneVsRest(classifier=lr)
-            #fit = ovr.fit(trainingData)
-        #transformed = fit.transform(validationData)
-
-
-        #print(fit.coefficientMatrix)
-        #print(fit.interceptVector)
-
-
-        self._result_setter.set_hyper_parameter_results(self._slug,None)
+        clf = NaiveBayes()
         if not algoSetting.is_hyperparameter_tuning_enabled():
             algoParams = algoSetting.get_params_dict()
         else:
             algoParams = algoSetting.get_params_dict_hyperparameter()
+        print("="*100)
+        print(algoParams)
+        print("="*100)
         clfParams = [prm.name for prm in clf.params]
         algoParams = {getattr(clf, k):v if isinstance(v, list) else [v] for k,v in algoParams.items() if k in clfParams}
+        #print("="*100)
+        #print("ALGOPARAMS - ",algoParams)
+        #print("="*100)
 
         paramGrid = ParamGridBuilder()
+                # if not algoSetting.is_hyperparameter_tuning_enabled():
+                #     for k,v in algoParams.items():
+                #         if v == [None] * len(v):
+                #             continue
+                #         if k.name == 'thresholds':
+                #             paramGrid = paramGrid.addGrid(k,v[0])
+                #         else:
+                #             paramGrid = paramGrid.addGrid(k,v)
+                #     paramGrid = paramGrid.build()
+
+        # if not algoSetting.is_hyperparameter_tuning_enabled():
         for k,v in algoParams.items():
+            print(k, v)
             if v == [None] * len(v):
                 continue
             paramGrid = paramGrid.addGrid(k,v)
         paramGrid = paramGrid.build()
+        # else:
+        #     for k,v in algoParams.items():
+        #         print k.name, v
+        #         if v[0] == [None] * len(v[0]):
+        #             continue
+        #         paramGrid = paramGrid.addGrid(k,v[0])
+        #     paramGrid = paramGrid.build()
+
+        #print("="*143)
+        #print("PARAMGRID - ", paramGrid)
+        #print("="*143)
 
         if len(paramGrid) > 1:
             hyperParamInitParam = algoSetting.get_hyperparameter_params()
@@ -224,9 +217,9 @@ class LogisticRegressionPysparkScript(object):
                               estimatorParamMaps=paramGrid,
                               evaluator=BinaryClassificationEvaluator() if levels == 2 else MulticlassClassificationEvaluator(),
                               numFolds=3 if numFold is None else numFold)  # use 3+ folds in practice
-                cvrf = crossval.fit(trainingData)
-                prediction = cvrf.transform(validationData)
-                bestModel = cvrf.bestModel
+                cvnb = crossval.fit(trainingData)
+                prediction = cvnb.transform(validationData)
+                bestModel = cvnb.bestModel
 
         else:
             train_test_ratio = float(self._dataframe_context.get_train_test_split())
@@ -253,24 +246,22 @@ class LogisticRegressionPysparkScript(object):
                 evaluator=BinaryClassificationEvaluator() if levels == 2 else MulticlassClassificationEvaluator(),
                 trainRatio=train_test_ratio)
 
-                tvrf = tvs.fit(trainingData)
-                prediction = tvrf.transform(validationData)
-                bestModel = tvrf.bestModel
+                tvspnb = tvs.fit(trainingData)
+                prediction = tvspnb.transform(validationData)
+                bestModel = tvspnb.bestModel
 
-        #modelmanagement={param[0].name:param[1] for param in bestModel.extractParamMap().items()}
-        #print(bestModel.stages[2].__dict__)
         modelmanagement_={param[0].name:param[1] for param in bestModel.stages[2].extractParamMap().items()}
+
         MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
         label_classes = prediction.select("label").distinct().collect()
         #results = transformed.select(["prediction","label"])
         # if len(label_classes) > 2:
-        #     metrics = MulticlassMetrics(predsAndLabels)
+        #     metrics = MulticlassMetrics(predsAndLabels) # accuracy of the model
         # else:
         #     metrics = BinaryClassificationMetrics(predsAndLabels)
         posLabel = inverseLabelMapping[self._targetLevel]
         metrics = MulticlassMetrics(predsAndLabels)
-
 
 
         trainingTime = time.time()-st
@@ -279,6 +270,7 @@ class LogisticRegressionPysparkScript(object):
         precision = metrics.precision(inverseLabelMapping[self._targetLevel])
         recall = metrics.recall(inverseLabelMapping[self._targetLevel])
         accuracy = metrics.accuracy
+
         print(f1_score,precision,recall,accuracy)
 
         #gain chart implementation
@@ -307,17 +299,20 @@ class LogisticRegressionPysparkScript(object):
 
 
 
-
-
+        #feature_importance = MLUtils.calculate_sparkml_feature_importance(df, bestModel.stages[-1], categorical_columns, numerical_columns)
         act_list = prediction.select('label').collect()
         actual=[int(row.label) for row in act_list]
+
         pred_list = prediction.select('prediction').collect()
         predicted=[int(row.prediction) for row in pred_list]
         prob_list = prediction.select('probability').collect()
         probability=[list(row.probability) for row in prob_list]
+        # objs = {"trained_model":bestModel,"actual":prediction.select('label'),"predicted":prediction.select('prediction'),
+        # "probability":prediction.select('probability'),"feature_importance":None,
+        # "featureList":list(categorical_columns) + list(numerical_columns),"labelMapping":labelMapping}
         objs = {"trained_model":bestModel,"actual":actual,"predicted":predicted,
         "probability":probability,"feature_importance":None,
-        "featureList":list(categorical_columns) + list(numerical_columns),"labelMapping":labelMapping}
+        "featureList":list(categorical_columns) +list(numerical_columns),"labelMapping":labelMapping}
 
         conf_mat_ar = metrics.confusionMatrix().toArray()
         print(conf_mat_ar)
@@ -327,88 +322,89 @@ class LogisticRegressionPysparkScript(object):
             for j, val in enumerate(conf_mat_ar[i]):
                 confusion_matrix[labelMapping[i]][labelMapping[j]] = val
         print(confusion_matrix) # accuracy of the model
+
         '''ROC CURVE IMPLEMENTATION'''
         y_prob = probability
         y_score = predicted
         y_test = actual
         logLoss = log_loss(y_test,y_prob)
         if levels <= 2:
-            positive_label_probs = []
-            for val in y_prob:
-                positive_label_probs.append(val[int(posLabel)])
-            roc_auc = roc_auc_score(y_test,y_score)
-            roc_data_dict = {
-                                "y_score" : y_score,
-                                "y_test" : y_test,
-                                "positive_label_probs" : positive_label_probs,
-                                "y_prob" : y_prob,
-                                "positive_label" : posLabel
-                            }
-            roc_dataframe = pd.DataFrame(
-                                            {
-                                                "y_score" : y_score,
-                                                "y_test" : y_test,
-                                                "positive_label_probs" : positive_label_probs
-                                            }
-                                        )
-            #roc_dataframe.to_csv("binary_roc_data.csv")
-            fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
-            roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
-            roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+             positive_label_probs = []
+             for val in y_prob:
+                 positive_label_probs.append(val[int(posLabel)])
+             roc_auc = roc_auc_score(y_test,y_score)
 
-            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
-            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
-            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+             roc_data_dict = {
+                                 "y_score" : y_score,
+                                 "y_test" : y_test,
+                                 "positive_label_probs" : positive_label_probs,
+                                 "y_prob" : y_prob,
+                                 "positive_label" : posLabel
+                             }
+             roc_dataframe = pd.DataFrame(
+                                             {
+                                                 "y_score" : y_score,
+                                                 "y_test" : y_test,
+                                                 "positive_label_probs" : positive_label_probs
+                                             }
+                                         )
+             #roc_dataframe.to_csv("binary_roc_data.csv")
+             fpr, tpr, thresholds = roc_curve(y_test, positive_label_probs, pos_label = posLabel)
+             roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+             roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
 
-            rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+             optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+             fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+             tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
 
-            unique_fpr = rounded_roc_df["FPR"].unique()
+             rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
 
-            final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
-            endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
+             unique_fpr = rounded_roc_df["FPR"].unique()
 
+             final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+             endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
         elif levels > 2:
-            positive_label_probs = []
-            for val in y_prob:
-                positive_label_probs.append(val[int(posLabel)])
+             positive_label_probs = []
+             for val in y_prob:
+                 positive_label_probs.append(val[int(posLabel)])
 
-            y_test_roc_multi = []
-            for val in y_test:
-                if val != posLabel:
-                    val = posLabel + 1
-                    y_test_roc_multi.append(val)
-                else:
-                    y_test_roc_multi.append(val)
+             y_test_roc_multi = []
+             for val in y_test:
+                 if val != posLabel:
+                     val = posLabel + 1
+                     y_test_roc_multi.append(val)
+                 else:
+                     y_test_roc_multi.append(val)
 
-            y_score_roc_multi = []
-            for val in y_score:
-                if val != posLabel:
-                    val = posLabel + 1
-                    y_score_roc_multi.append(val)
-                else:
-                    y_score_roc_multi.append(val)
+             y_score_roc_multi = []
+             for val in y_score:
+                 if val != posLabel:
+                     val = posLabel + 1
+                     y_score_roc_multi.append(val)
+                 else:
+                     y_score_roc_multi.append(val)
 
-            roc_auc = roc_auc_score(y_test_roc_multi, y_score_roc_multi)
+             roc_auc = roc_auc_score(y_test_roc_multi, y_score_roc_multi)
 
-            fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
-            roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
-            roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
+             fpr, tpr, thresholds = roc_curve(y_test_roc_multi, positive_label_probs, pos_label = posLabel)
+             roc_df = pd.DataFrame({"FPR" : fpr, "TPR" : tpr, "thresholds" : thresholds})
+             roc_df["tpr-fpr"] = roc_df["TPR"] - roc_df["FPR"]
 
-            optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
-            fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
-            tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
+             optimal_index = np.argmax(np.array(roc_df["tpr-fpr"]))
+             fpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "FPR"]
+             tpr_optimal_index =  roc_df.loc[roc_df.index[optimal_index], "TPR"]
 
-            rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
-            unique_fpr = rounded_roc_df["FPR"].unique()
-            final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
-            endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
-
+             rounded_roc_df = roc_df.round({'FPR': 2, 'TPR': 4})
+             unique_fpr = rounded_roc_df["FPR"].unique()
+             final_roc_df = rounded_roc_df.groupby("FPR", as_index = False)[["TPR"]].mean()
+             endgame_roc_df = final_roc_df.round({'FPR' : 2, 'TPR' : 3})
         # Calculating prediction_split
         val_cnts = prediction.groupBy('label').count()
         val_cnts = map(lambda row: row.asDict(), val_cnts.collect())
         prediction_split = {}
         total_nos = prediction.select('label').count()
         for item in val_cnts:
+            print(labelMapping)
             classname = labelMapping[item['label']]
             prediction_split[classname] = round(item['count']*100 / float(total_nos), 2)
 
@@ -433,12 +429,12 @@ class LogisticRegressionPysparkScript(object):
 
         cat_cols = list(set(categorical_columns) - {result_column})
         self._model_summary = MLModelSummary()
-        self._model_summary.set_algorithm_name("Logistic Regression")
-        self._model_summary.set_algorithm_display_name("Logistic Regression")
+        self._model_summary.set_algorithm_name("Naive Bayes")
+        self._model_summary.set_algorithm_display_name("Naive Bayes")
         self._model_summary.set_slug(self._slug)
         self._model_summary.set_training_time(runtime)
         self._model_summary.set_confusion_matrix(confusion_matrix)
-        self._model_summary.set_feature_importance(objs["feature_importance"])
+        # self._model_summary.set_feature_importance(objs["feature_importance"])
         self._model_summary.set_feature_list(objs["featureList"])
         self._model_summary.set_model_accuracy(accuracy)
         self._model_summary.set_training_time(round((time.time() - st),2))
@@ -453,9 +449,10 @@ class LogisticRegressionPysparkScript(object):
         self._model_summary.set_prediction_split(prediction_split)
         self._model_summary.set_validation_method("KFold")
         self._model_summary.set_level_map_dict(objs["labelMapping"])
+        # self._model_summary.set_model_features(list(set(x_train.columns)-set([result_column])))
         self._model_summary.set_model_features(objs["featureList"])
         self._model_summary.set_level_counts(self._metaParser.get_unique_level_dict(list(set(categorical_columns)) + [result_column]))
-        self._model_summary.set_num_trees(None)
+        #self._model_summary.set_num_trees(objs['trained_model'].getNumTrees)
         self._model_summary.set_num_rules(300)
         self._model_summary.set_target_level(self._targetLevel)
 
@@ -491,31 +488,27 @@ class LogisticRegressionPysparkScript(object):
                 "slug":self._model_summary.get_slug(),
                 "name":self._model_summary.get_algorithm_name()
             }
-
         self._model_management = MLModelSummary()
         print(modelmanagement_)
-        self._model_management.set_fit_intercept(data=modelmanagement_['fitIntercept'])
-        self._model_management.set_multiclass_option(data=modelmanagement_['family'])
-        self._model_management.set_maximum_solver(data=modelmanagement_['maxIter'])
-        self._model_management.set_convergence_tolerence_iteration(data=modelmanagement_['tol'])
-        self._model_management.set_inverse_regularization_strength(data=modelmanagement_['regParam'])
-        self._model_management.set_elasticNetParam(data=modelmanagement_['elasticNetParam'])
-        self._model_management.set_aggregationDepth(data=modelmanagement_['aggregationDepth'])
-        self._model_management.set_standardization(data=modelmanagement_['standardization'])
-        self._model_management.set_threshold(data=modelmanagement_['threshold'])
         self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
         self._model_management.set_training_status(data="completed")# training status
-        self._model_management.set_no_of_independent_variables(df) #no of independent varables
         self._model_management.set_target_level(self._targetLevel) # target column value
         self._model_management.set_training_time(runtime) # run time
-        self._model_management.set_model_accuracy(round(metrics.accuracy,2))#accuracy
-        self._model_management.set_algorithm_name("Logistic Regression")#algorithm name
+        self._model_management.set_model_accuracy(round(metrics.accuracy,2))
+        # self._model_management.set_model_accuracy(round(metrics.accuracy_score(objs["actual"], objs["predicted"]),2))#accuracy
+        self._model_management.set_algorithm_name("NaiveBayes")#algorithm name
         self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
         self._model_management.set_target_variable(result_column)#target column name
         self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
         self._model_management.set_datasetName(self._datasetName)
+        self._model_management.set_model_type(data='classification')
+        self._model_management.set_var_smoothing(data=int(modelmanagement_['smoothing']))
 
-        modelManagementSummaryJson =[
+
+
+        # self._model_management.set_no_of_independent_variables(df) #no of independent varables
+
+        modelManagementSummaryJson = [
 
                     ["Project Name",self._model_management.get_job_type()],
                     ["Algorithm",self._model_management.get_algorithm_name()],
@@ -527,67 +520,60 @@ class LogisticRegressionPysparkScript(object):
 
                     ]
 
-        modelManagementModelSettingsJson =[
 
-                    ["Training Dataset",self._model_management.get_datasetName()],
-                    ["Target Column",self._model_management.get_target_variable()],
-                    ["Target Column Value",self._model_management.get_target_level()],
-                    ["Number Of Independent Variables",self._model_management.get_no_of_independent_variables()],
-                    ["Algorithm",self._model_management.get_algorithm_name()],
-                    ["Model Validation",self._model_management.get_validation_method()],
-                    ["Fit Intercept",str(self._model_management.get_fit_intercept())],
-                    ["AggregationDepth",self._model_management.get_aggregationDepth()],
-                    ["MultiClass Option",self._model_management.get_multiclass_option()],
-                    ["Maximum Solver Iterations",self._model_management.get_maximum_solver()],
-                    ["elasticNetParam",self._model_management.get_elasticNetParam()],
-                    ["standardization",self._model_management.get_standardization()],
-                    ["threshold",str(self._model_management.get_threshold())],
-                    ["Convergence Tolerence Iterations",self._model_management.get_convergence_tolerence_iteration()],
-                    ["Regularization Strength",self._model_management.get_inverse_regularization_strength()]
+        modelManagementModelSettingsJson = [
 
-                    ]
+                                  ["Training Dataset",self._model_management.get_datasetName()],
+                                  ["Target Column",self._model_management.get_target_variable()],
+                                  ["Target Column Value",self._model_management.get_target_level()],
+                                  ["Algorithm",self._model_management.get_algorithm_name()],
+                                  ["Model Validation",self._model_management.get_validation_method()],
+                                  ["Model Type",self._model_management.get_model_type()],
+                                  ["Smoothing",self._model_management.get_var_smoothing()],
 
-        lrOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
-        lrPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
-        lrDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
-        lrCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
-        LR_Overview_Node = NarrativesTree()
-        LR_Overview_Node.set_name("Overview")
-        LR_Performance_Node = NarrativesTree()
-        LR_Performance_Node.set_name("Performance")
-        LR_Deployment_Node = NarrativesTree()
-        LR_Deployment_Node.set_name("Deployment")
-        for card in lrOverviewCards:
-            LR_Overview_Node.add_a_card(card)
-        for card in lrPerformanceCards:
-            LR_Performance_Node.add_a_card(card)
-        for card in lrDeploymentCards:
-            LR_Deployment_Node.add_a_card(card)
-        for card in lrCards:
+                                  #,["priors",self._model_management.get_priors()]
+                                  #,["var_smoothing",self._model_management.get_var_smoothing()]
+
+                                                  ]
+
+
+        nbOverviewCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_card_overview(self._model_management,modelManagementSummaryJson,modelManagementModelSettingsJson)]
+        nbPerformanceCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_cards(self._model_summary, endgame_roc_df)]
+        nbDeploymentCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_management_deploy_empty_card()]
+        nbCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
+        NB_Overview_Node = NarrativesTree()
+        NB_Overview_Node.set_name("Overview")
+        NB_Performance_Node = NarrativesTree()
+        NB_Performance_Node.set_name("Performance")
+        NB_Deployment_Node = NarrativesTree()
+        NB_Deployment_Node.set_name("Deployment")
+        for card in nbOverviewCards:
+            NB_Overview_Node.add_a_card(card)
+        for card in nbPerformanceCards:
+            NB_Performance_Node.add_a_card(card)
+        for card in nbDeploymentCards:
+            NB_Deployment_Node.add_a_card(card)
+        for card in nbCards:
             self._prediction_narrative.add_a_card(card)
 
-        self._result_setter.set_model_summary(
-            {"logistic": json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
-        self._result_setter.set_logistic_regression_model_summary(modelSummaryJson)
-        self._result_setter.set_lr_cards(lrCards)
-        self._result_setter.set_lr_nodes([LR_Overview_Node,LR_Performance_Node,LR_Deployment_Node])
-        self._result_setter.set_lr_fail_card({"Algorithm_Name":"LogisticRegression","success":"True"})
+        self._result_setter.set_model_summary({"naivebayes":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
+        self._result_setter.set_naive_bayes_model_summary(modelSummaryJson)
+        self._result_setter.set_nb_cards(nbCards)
+        self._result_setter.set_nb_nodes([NB_Overview_Node, NB_Performance_Node, NB_Deployment_Node])
+        self._result_setter.set_nb_fail_card({"Algorithm_Name":"Naive Bayes","success":"True"})
 
-        CommonUtils.create_update_and_save_progress_message(self._dataframe_context, self._scriptWeightDict,
-                                                            self._scriptStages, self._slug, "completion", "info",
-                                                            display=True, emptyBin=False, customMsg=None,
-                                                            weightKey="total")
+        CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
 
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()
         self._scriptStages = {
             "initialization":{
-                "summary":"Initialized the Logistic Regression Scripts",
+                "summary":"Initialized the Naive Bayes Scripts",
                 "weight":2
                 },
             "prediction":{
-                "summary":"Logistic Regression Model Prediction Finished",
+                "summary":"Spark ML Naive Bayes Model Prediction Finished",
                 "weight":2
                 },
             "frequency":{
@@ -624,10 +610,6 @@ class LogisticRegressionPysparkScript(object):
         categorical_columns = [x for x in categorical_columns if x != result_column]
 
         level_counts_score = CommonUtils.get_level_count_dict(self._data_frame,categorical_columns,self._dataframe_context.get_column_separator(),output_type="dict",dataType="spark")
-        print('+'*100)
-        print(level_counts_train)
-        print(level_counts_train)
-        print('+'*100)
         for key in level_counts_train:
             if key in level_counts_score:
                 if level_counts_train[key] != level_counts_score[key]:
@@ -639,7 +621,7 @@ class LogisticRegressionPysparkScript(object):
         score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
         trained_model_path = self._dataframe_context.get_model_path()
         trained_model_path = "/".join(trained_model_path.split("/")[:-1])+"/"+self._slug+"/"+self._dataframe_context.get_model_for_scoring()
-        score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
+        # score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
 
         pipelineModel = MLUtils.load_pipeline(trained_model_path)
 
@@ -701,32 +683,19 @@ class LogisticRegressionPysparkScript(object):
         CommonUtils.save_progress_message(self._messageURL,progressMessage)
         self._dataframe_context.update_completion_status(self._completionStatus)
 
-        # CommonUtils.write_to_file(score_summary_path,json.dumps({"scoreSummary":self._score_summary}))
-
 
         print("STARTING DIMENSION ANALYSIS ...")
         columns_to_keep = []
         columns_to_drop = []
-        # considercolumnstype = self._dataframe_context.get_score_consider_columns_type()
+
         columns_to_keep = self._dataframe_context.get_score_consider_columns()
-        # if considercolumnstype != None:
-        #     if considercolumns != None:
-        #         if considercolumnstype == ["excluding"]:
-        #             columns_to_drop = considercolumns
-        #         elif considercolumnstype == ["including"]:
-        #             columns_to_keep = considercolumns
+
         if len(columns_to_keep) > 0:
             columns_to_drop = list(set(df.columns)-set(columns_to_keep))
         else:
             columns_to_drop += ["predicted_probability"]
 
-        # columns_to_drop = [x for x in columns_to_drop if x in df.columns and x != result_column]
-        # spark_scored_df = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column])
         scored_df = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column])
-        # scored_df = scored_df.drop(','.join(columns_to_drop))
-
-        # SQLctx = SQLContext(sparkContext=self._spark.sparkContext, sparkSession=self._spark)
-        # spark_scored_df = SQLctx.createDataFrame(scored_df.toPandas())
         columns_to_drop = [x for x in columns_to_drop if x in scored_df.columns]
         modified_df = scored_df.select([x for x in scored_df.columns if x not in columns_to_drop])
         resultColLevelCount = dict(modified_df.groupby(result_column).count().collect())
@@ -737,66 +706,8 @@ class LogisticRegressionPysparkScript(object):
         self._dataframe_context.update_consider_columns(columns_to_keep)
         df_helper = DataFrameHelper(modified_df, self._dataframe_context, self._metaParser)
         df_helper.set_params()
-
-        df = df_helper.get_data_frame()
-        #try:
-        #    fs = time.time()
-        #    narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
-        #    result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-        #    df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
-        #    df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-        #    CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-        #    narratives_obj = DimensionColumnNarrative(df, result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
-        #    narratives = CommonUtils.as_dict(narratives_obj)
-        #    CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
-        #    print("Frequency Analysis Done in ", time.time() - fs,  " seconds.")
-        #except:
-        #    print("Frequency Analysis Failed ")
-
-        #try:
-        #    fs = time.time()
-        #    narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-        #    result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-        #    df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
-        #    df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-            # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
-        #    CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-        #    chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
-            # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-        #    CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-        #    print("ChiSquare Analysis Done in ", time.time() - fs, " seconds.")
-        #except:
-         #  print("ChiSquare Analysis Failed ")
         spark_scored_df = df_helper.get_data_frame()
-        # spark_scored_df.show(5)
-        # try:
-        #     fs = time.time()
-        #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/FreqDimension/data.json"
-        #     result_file = self._dataframe_context.get_score_path()+"/results/FreqDimension/data.json"
-        #     df_freq_dimension_obj = FreqDimensions(spark_scored_df, df_helper, self._dataframe_context).test_all(dimension_columns=[result_column])
-        #     df_freq_dimension_result = CommonUtils.as_dict(df_freq_dimension_obj)
-        #     CommonUtils.write_to_file(result_file,json.dumps(df_freq_dimension_result))
-        #     narratives_obj = DimensionColumnNarrative(result_column, df_helper, self._dataframe_context, df_freq_dimension_obj)
-        #     narratives = CommonUtils.as_dict(narratives_obj)
-        #     CommonUtils.write_to_file(narratives_file,json.dumps(narratives))
-        #     print "Frequency Analysis Done in ", time.time() - fs,  " seconds."
-        # except:
-        #     print "Frequency Analysis Failed "
-        #
-        # try:
-        #     fs = time.time()
-        #     narratives_file = self._dataframe_context.get_score_path()+"/narratives/ChiSquare/data.json"
-        #     result_file = self._dataframe_context.get_score_path()+"/results/ChiSquare/data.json"
-        #     df_chisquare_obj = ChiSquare(df, df_helper, self._dataframe_context).test_all(dimension_columns= [result_column])
-        #     df_chisquare_result = CommonUtils.as_dict(df_chisquare_obj)
-        #     # print 'RESULT: %s' % (json.dumps(df_chisquare_result, indent=2))
-        #     CommonUtils.write_to_file(result_file,json.dumps(df_chisquare_result))
-        #     chisquare_narratives = CommonUtils.as_dict(ChiSquareNarratives(df_helper, df_chisquare_obj, self._dataframe_context,df))
-        #     # print 'Narrarives: %s' %(json.dumps(chisquare_narratives, indent=2))
-        #     CommonUtils.write_to_file(narratives_file,json.dumps(chisquare_narratives))
-        #     print "ChiSquare Analysis Done in ", time.time() - fs, " seconds."
-        # except:
-        #    print "ChiSquare Analysis Failed "
+
         if len(predictedClasses) >=2:
             try:
                 fs = time.time()
@@ -809,7 +720,6 @@ class LogisticRegressionPysparkScript(object):
             data_dict = {"npred": len(predictedClasses), "nactual": len(labelMappingDict.values())}
 
             if data_dict["nactual"] > 2:
-                levelCountDict={}
                 levelCountDict[predictedClasses[0]] = resultColLevelCount[predictedClasses[0]]
                 levelCountDict["Others"]  = sum([v for k,v in resultColLevelCount.items() if k != predictedClasses[0]])
             else:
@@ -847,4 +757,4 @@ class LogisticRegressionPysparkScript(object):
                 main_card_data.append(uidTable)
             main_card.set_card_data(main_card_data)
             main_card.set_card_name("Predicting Key Drivers of {}".format(result_column))
-            self._result_setter.set_score_dtree_cards([main_card], {})
+            self._result_setter.set_score_dtree_cards([main_card],{})

@@ -73,6 +73,7 @@ class NeuralNetworkScript(object):
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._model=None
 
         self._scriptStages = {
             "initialization":{
@@ -262,6 +263,7 @@ class NeuralNetworkScript(object):
                     bestEstimator = clf
 
             trainingTime = time.time()-st
+            self._model=bestEstimator
             y_score = bestEstimator.predict(x_test)
             try:
                 y_prob = bestEstimator.predict_proba(x_test)

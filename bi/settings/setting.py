@@ -40,7 +40,7 @@ ANOVAMAXLEVEL = 200
 BLOCKSPLITTER = "|~NEWBLOCK~|"
 BASEFOLDERNAME_MODELS = "mAdvisorModels"
 BASEFOLDERNAME_SCORES = "mAdvisorScores"
-PROBABILITY_RANGE_FOR_DONUT_CHART = {"0-10":(0,10),"10-20":(10,20),"20-30":(20,30),"30-40":(30,40),"40-50":(40,50),"50-60%":(50,60),"60-70%":(60,70),"70-80%":(70,80),"80-90%":(80,90),"90-100%":(90,100)}
+PROBABILITY_RANGE_FOR_DONUT_CHART = {"0-10%":(0,10),"10-20%":(10,20),"20-30%":(20,30),"30-40%":(30,40),"40-50%":(40,50),"50-60%":(50,60),"60-70%":(60,70),"70-80%":(70,80),"80-90%":(80,90),"90-100%":(90,100)}
 
 DEFAULT_VALIDATION_OBJECT = {
          "name":"trainAndtest",
@@ -134,11 +134,20 @@ APPS_ID_MAP = {
 
 SLUG_MODEL_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"randomforest",
+            ALGORITHMRANDOMSLUG+"sprf":"sparkrandomforest",
+            ALGORITHMRANDOMSLUG+"spmlpc":"sparkmlpclassifier",
+            ALGORITHMRANDOMSLUG+"spxgb":"sparkxgboost",
+            ALGORITHMRANDOMSLUG+"splr":"sparklogisticregression",
             ALGORITHMRANDOMSLUG+"nb":"naivebayesber",
             ALGORITHMRANDOMSLUG+"nb":"naivebayesgau",
+            ALGORITHMRANDOMSLUG+"spnb":"sparknaivebayes",
             ALGORITHMRANDOMSLUG+"nb":"naive bayes",
             ALGORITHMRANDOMSLUG+"lr":"logisticregression",
+            ALGORITHMRANDOMSLUG+"en":"ensemble",
             ALGORITHMRANDOMSLUG+"xgb":"xgboost",
+            ALGORITHMRANDOMSLUG+"adab":"adaboost",
+            ALGORITHMRANDOMSLUG+"lgbm":"LightGBM",
+            ALGORITHMRANDOMSLUG+"spxgb":"sparkxgboost",
             ALGORITHMRANDOMSLUG+"svm":"svm",
             ALGORITHMRANDOMSLUG+"linr":"linearregression",
             ALGORITHMRANDOMSLUG+"gbtr":"gbtregression",
@@ -150,11 +159,21 @@ SLUG_MODEL_MAPPING = {
             }
 MODEL_SLUG_MAPPING = {
             "randomforest":ALGORITHMRANDOMSLUG+"rf",
+            "sparkrandomforest":ALGORITHMRANDOMSLUG+"sprf",
+            "sparkmlpclassifier":ALGORITHMRANDOMSLUG+"spmlpc",
+            "sparkxgboost":ALGORITHMRANDOMSLUG+"spxgb",
+            "sparklogisticregression":ALGORITHMRANDOMSLUG+"splr",
             "naivebayesber":ALGORITHMRANDOMSLUG+"nb",
             "naivebayesgau":ALGORITHMRANDOMSLUG+"nb",
             "naive bayes":ALGORITHMRANDOMSLUG+"nb",
+            "naivebayesmul":ALGORITHMRANDOMSLUG+"nb",
+            "sparknaivebayes":ALGORITHMRANDOMSLUG+"spnb",
             "logisticregression":ALGORITHMRANDOMSLUG+"lr",
+            "ensemble":ALGORITHMRANDOMSLUG+"en",
             "xgboost":ALGORITHMRANDOMSLUG+"xgb",
+            "adaboost":ALGORITHMRANDOMSLUG+"adab",
+            "LightGBM":ALGORITHMRANDOMSLUG+"lgbm",
+            "sparkxgboost":ALGORITHMRANDOMSLUG+"spxgb",
             "svm":ALGORITHMRANDOMSLUG+"svm",
             "linearregression":ALGORITHMRANDOMSLUG+"linr",
             "generalizedlinearregression":ALGORITHMRANDOMSLUG+"linr",
@@ -168,9 +187,18 @@ MODEL_SLUG_MAPPING = {
 
 SLUG_MODEL_DISPLAY_NAME_MAPPING = {
             ALGORITHMRANDOMSLUG+"rf":"Random Forest",
+            ALGORITHMRANDOMSLUG+"sprf":"Spark Random Forest",
+            ALGORITHMRANDOMSLUG+"spmlpc":"Spark MLP Classifier",
+            ALGORITHMRANDOMSLUG+"spxgb":"Spark XGBoost",
+            ALGORITHMRANDOMSLUG+"splr":"Spark Logistic Regression",
             ALGORITHMRANDOMSLUG+"nb":"Naive Bayes",
+            ALGORITHMRANDOMSLUG+"spnb":"Spark Naive Bayes",
             ALGORITHMRANDOMSLUG+"lr":"Logistic Regression",
+            ALGORITHMRANDOMSLUG+"en":"Ensemble",
             ALGORITHMRANDOMSLUG+"xgb":"Xgboost",
+            ALGORITHMRANDOMSLUG+"adab":"Adaboost",
+            ALGORITHMRANDOMSLUG+"lgbm":"LightGBM",
+            ALGORITHMRANDOMSLUG+"spxgb":"Spark XGBoost",
             ALGORITHMRANDOMSLUG+"svm":"SVM",
             ALGORITHMRANDOMSLUG+"linr":"Linear Regression",
             ALGORITHMRANDOMSLUG+"gbtr":"Gradient Boosted Trees",
@@ -231,8 +259,17 @@ regressionAlgoRelativeWeight = {
 
 classificationAlgoRelativeWeight = {
     ALGORITHMRANDOMSLUG+"rf"  : 1,
+    ALGORITHMRANDOMSLUG+"sprf"  : 1,
+    ALGORITHMRANDOMSLUG+"spmlpc"  : 1,
+    ALGORITHMRANDOMSLUG+"spxgb"  : 1,
+    ALGORITHMRANDOMSLUG+"splr"  : 1,
     ALGORITHMRANDOMSLUG+"nb"  : 1,
+    ALGORITHMRANDOMSLUG+"spnb"  : 1,
     ALGORITHMRANDOMSLUG+"xgb" : 1,
+    ALGORITHMRANDOMSLUG+"en" : 1,
+    ALGORITHMRANDOMSLUG+"adab" : 1,
+    ALGORITHMRANDOMSLUG+"lgbm" : 1,
+    ALGORITHMRANDOMSLUG+"spxgb" : 1,
     ALGORITHMRANDOMSLUG+"lr"  : 1,
     ALGORITHMRANDOMSLUG+"svm" : 2,
     ALGORITHMRANDOMSLUG+"mlp" : 1,

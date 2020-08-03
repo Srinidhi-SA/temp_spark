@@ -75,6 +75,7 @@ class NBBClassificationModelScript(object):
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._model=None
 
         self._scriptStages = {
             "initialization":{
@@ -229,6 +230,10 @@ class NBBClassificationModelScript(object):
                         bestEstimator = clf
 
             trainingTime = time.time()-st
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             y_score = bestEstimator.predict(x_test)
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
@@ -328,6 +333,8 @@ class NBBClassificationModelScript(object):
             # self._model_summary.set_num_trees(100)
             # self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
+
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
@@ -660,7 +667,7 @@ class NBGClassificationModelScript(object):
         self._score_summary = {}
         self._slug = GLOBALSETTINGS.MODEL_SLUG_MAPPING["naivebayesgau"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
-
+        self._model=None
         self._completionStatus = self._dataframe_context.get_completion_status()
         print(self._completionStatus,"initial completion status")
         self._analysisName = self._slug
@@ -830,6 +837,10 @@ class NBGClassificationModelScript(object):
                         bestEstimator = clf
 
             trainingTime = time.time()-st
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             y_score = bestEstimator.predict(x_test)
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
@@ -1416,6 +1427,7 @@ class NBMClassificationModelScript(object):
         self._messageURL = self._dataframe_context.get_message_url()
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
+        self._model=None
 
         self._scriptStages = {
             "initialization":{
@@ -1621,6 +1633,10 @@ class NBMClassificationModelScript(object):
                         clf.fit(x_train, y_train)
                         bestEstimator = clf
 
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
             try:
@@ -1796,6 +1812,9 @@ class NBMClassificationModelScript(object):
             self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
             self._model_summary.set_target_level(self._targetLevel)
+
+
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),

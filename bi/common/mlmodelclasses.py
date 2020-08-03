@@ -14,8 +14,17 @@ from sklearn import metrics
 import warnings
 warnings.filterwarnings('ignore')
 
+import lightgbm as lgb
+import numpy as np
 
-
+from pyspark.ml.classification import RandomForestClassifier
+from pyspark.ml.tuning import CrossValidator, ParamGridBuilder, TrainValidationSplit
+from pyspark.ml import Pipeline
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator, BinaryClassificationEvaluator
+from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetrics
+from pyspark.ml.feature import IndexToString
+from pyspark.sql.functions import udf
+from pyspark.sql.types import *
 
 class ModelSummary(object):
     """
@@ -53,21 +62,28 @@ class ModelSummary(object):
         self.modelSelectedByUser = False
         self.model_management_summary = model_management_summary
 
-    def set_model_summary(self,data):
+    def set_model_summary(self, data):
         self.model_summary = data
+
     def get_model_summary(self):
         return self.model_summary
-    def set_model_dropdown(self,data):
+
+    def set_model_dropdown(self, data):
         self.model_dropdown = data
+
     def get_model_dropdown(self):
         return self.model_dropdown
-    def set_model_config(self,data):
+
+    def set_model_config(self, data):
         self.config = data
+
     def get_model_config(self):
         return self.config
+
     def get_model_hyperparameter_summary(self):
         return self.model_hyperparameter_summary
-    def set_model_hyperparameter_summary(self,data):
+
+    def set_model_hyperparameter_summary(self, data):
         self.model_hyperparameter_summary = data
     def get_model_management_summary(self):
         return self.model_management_summary
@@ -107,7 +123,7 @@ class MLModelSummary(object):
         self.levelMap = None
         self.modelParams = None
         self.modelEvaluationMetrics = None
-        self.modelType = None #can be "regression", or "classification"
+        self.modelType = None  # can be "regression", or "classification"
         self.quantileSummary = None
         self.mapeStats = None
         self.sampleData = None
@@ -157,7 +173,71 @@ class MLModelSummary(object):
         self.exp_var_score = None
         self.layer_info=[]
         self.optimizer=None
+        self.aggregation_depth=None
+        self.standardization=None
+        self.threshold=None
+        self.maxBins = None
+        self.minInstancesPerNode = None
+        self.minInfoGain = None
+        self.cacheNodeIds = None
+        self.checkpointInterval = None
+        self.impurity = None
+        self.numTrees = None
+        self.featureSubsetStrategy = None
+        self.subsamplingRate = None
 
+    def set_max_bins(self,data):
+        self.maxBins = data
+    def get_max_bins(self):
+        return self.maxBins
+    def set_min_instances_per_node(self,data):
+        self.minInstancesPerNode = data
+    def get_min_instances_per_node(self):
+        return self.minInstancesPerNode
+    def set_min_info_gain(self,data):
+        self.minInfoGain = data
+    def get_min_info_gain(self):
+        return self.minInfoGain
+    def set_cacheNodeIds(self,data):
+        self.cacheNodeIds = data
+    def get_cacheNodeIds(self):
+        return self.cacheNodeIds
+    def set_checkpoint_interval(self,data):
+        self.checkpointInterval = data
+    def get_checkpoint_interval(self):
+        return self.checkpointInterval
+    def set_impurity(self,data):
+        self.impurity = data
+    def get_impurity(self):
+        return self.impurity
+    def set_num_of_trees(self,data):
+        self.numTrees = data
+    def get_num_of_trees(self):
+        return self.numTrees
+    def set_feature_subset_strategy(self,data):
+        self.featureSubsetStrategy = data
+    def get_feature_subset_strategy(self):
+        return self.featureSubsetStrategy
+    def set_subsampling_rate(self,data):
+        self.subsamplingRate = data
+    def get_subsampling_rate(self):
+        return self.subsamplingRate
+    def set_elasticNetParam(self,data):
+        self.elasticNetParam=data
+    def get_elasticNetParam(self):
+        return self.elasticNetParam
+    def set_aggregationDepth(self,data):
+        self.aggregation_depth=data
+    def get_aggregationDepth(self):
+        return self.aggregation_depth
+    def set_standardization(self,data):
+        self.standardization=data
+    def get_standardization(self):
+        return self.standardization
+    def set_threshold(self,data):
+        self.threshold=data
+    def get_threshold(self):
+        return self.threshold
     def set_layer_info(self,data):
         self.layer_info=data
     def get_layer_info(self):
@@ -473,63 +553,73 @@ class MLModelSummary(object):
     def get_subsample_for_each_split(self):
         return self.subsampleForEachSplit
 
-    def set_intercept(self,data):
+    def set_intercept(self, data):
         self.interceptValue = data
+
     def get_intercept(self):
         return self.interceptValue
-    def set_coefficinets_array(self,data):
+
+    def set_coefficinets_array(self, data):
         self.coefficinetsArray = data
+
     def get_coefficinets_array(self):
         return self.coefficinetsArray
-    def set_sample_data(self,data):
+
+    def set_sample_data(self, data):
         self.sampleData = data
+
     def get_sample_data(self):
         return self.sampleData
-    def set_mape_stats(self,data):
+
+    def set_mape_stats(self, data):
         self.mapeStats = data
+
     def get_mape_stats(self):
         return self.mapeStats
-    def set_quantile_summary(self,data):
+
+    def set_quantile_summary(self, data):
         self.quantileSummary = data
+
     def get_quantile_summary(self):
         return self.quantileSummary
-    def set_model_type(self,data):
+
+    def set_model_type(self, data):
         self.modelType = data
 
     def get_model_type(self):
         return self.modelType
 
-    def set_model_evaluation_metrics(self,data):
+    def set_model_evaluation_metrics(self, data):
         self.modelEvaluationMetrics = data
 
     def get_model_evaluation_metrics(self):
         return self.modelEvaluationMetrics
 
-    def set_model_params(self,data):
+    def set_model_params(self, data):
         self.modelParams = data
 
     def get_model_params(self):
         return self.modelParams
 
-    def set_level_map_dict(self,data):
+    def set_level_map_dict(self, data):
         self.levelMap = data
 
     def get_level_map_dict(self):
         return self.levelMap
 
-    def set_confusion_matrix(self,data):
+    def set_confusion_matrix(self, data):
         self.confusionMatrix = data
 
-    def set_feature_importance(self,data):
+    def set_feature_importance(self, data):
         self.featureImportance = data
 
-    def set_feature_list(self,data):
+    def set_feature_list(self, data):
         self.featureList = data
 
-    def set_training_time(self,data):
+    def set_training_time(self, data):
         self.trainingTime = data
 
-    def set_precision_recall_stats(self,data):
+    def set_precision_recall_stats(self, data):
         self.precisionRecallStats = data
 
     def set_model_accuracy(self,data):
@@ -541,37 +631,37 @@ class MLModelSummary(object):
     def set_model_recall(self,data):
         self.modelRecall = round(data,3)
 
-    def set_target_variable(self,data):
+    def set_target_variable(self, data):
         self.targetVariable = data
 
-    def set_prediction_split(self,data):
+    def set_prediction_split(self, data):
         self.predictionSplit = data
 
-    def set_algorithm_name(self,data):
+    def set_algorithm_name(self, data):
         self.algorithmName = data
 
-    def set_algorithm_display_name(self,data):
+    def set_algorithm_display_name(self, data):
         self.algorithmDisplayName = data
 
-    def set_validation_method(self,data):
+    def set_validation_method(self, data):
         self.validationMethod = data
 
-    def set_model_features(self,data):
+    def set_model_features(self, data):
         self.modelFeatures = data
 
-    def set_level_counts(self,data):
+    def set_level_counts(self, data):
         self.levelCounts = data
 
-    def set_num_trees(self,data):
+    def set_num_trees(self, data):
         self.nTrees = data
 
-    def set_num_rules(self,data):
+    def set_num_rules(self, data):
         self.nRules = data
 
-    def set_target_level(self,data):
+    def set_target_level(self, data):
         self.targetLevel = data
 
-    def set_slug(self,data):
+    def set_slug(self, data):
         self.slug = data
 
     def get_confusion_matrix(self):
@@ -636,9 +726,10 @@ class MLModelMetaData(object):
     """
     This module contains Meta Data for a corresponding ML Model
     """
+
     def __init__(self):
         self.algorithmName = None
-        self.modelType = None                   #ensemble or single model
+        self.modelType = None  # ensemble or single model
         self.trainingTime = None
         self.packageUsed = None
         self.packageVersion = None
@@ -648,6 +739,248 @@ class ParamsGrid(object):
     """
 
     """
+class PySparkGridSearchResult(object):
+    def __init__(self, estimator=None, paramGrid=None, appType=None,
+                 modelFilepath=None, levels=None, evaluationMetricDict=None,
+                 trainingData=None, validationData=None, numFolds=None, targetLevel=None,
+                 labelMapping=None, inverseLabelMapping=None, df=None, categorical_columns=None,
+                 numerical_columns=None):
+        self.estimator = estimator
+        self.paramGrid = paramGrid
+        self.appType = appType
+        self.levels = levels
+        self.evaluationMetricDict = evaluationMetricDict
+        self.modelFilepath = modelFilepath
+        self.trainingData = trainingData
+        self.validationData = validationData
+        self.numFolds = numFolds
+        self.targetLevel = targetLevel
+        self.labelMapping = labelMapping
+        self.inverseLabelMapping = inverseLabelMapping
+        self.df = df
+        self.categorical_columns = categorical_columns
+        self.numerical_columns = numerical_columns
+        self.ignoreList = ["Model Id", "Precision", "Recall", "ROC-AUC", "RMSE", "MAE", "MSE", "R-Squared", "Slug",
+                           "Selected", "Run Time(Secs)", "comparisonMetricUsed", "algorithmName", "alwaysSelected"]
+        self.hideFromTable = ["Selected", "alwaysSelected", "Slug", "comparisonMetricUsed", "algorithmName"]
+        self.metricColName = "comparisonMetricUsed"
+        self.keepColumns = ["Model Id"]
+        self.bestModel = None
+        self.bestPrediction = None
+
+    def get_ignore_list(self):
+        return self.ignoreList
+
+    def get_hide_columns(self):
+        return self.hideFromTable
+
+    def get_comparison_metric_colname(self):
+        return self.metricColName
+
+    def get_keep_columns(self):
+        return self.keepColumns
+
+    def train_and_save_classification_models(self):
+        tableOutput = []
+        evaluationMetric = self.evaluationMetricDict["name"]
+        evaluationMetricVal = -1
+        for idx, params in enumerate(self.paramGrid):
+            st = time.time()
+            crossval = CrossValidator(estimator=self.estimator,
+                                      estimatorParamMaps=[params],
+                                      evaluator=BinaryClassificationEvaluator() if self.levels == 2 else MulticlassClassificationEvaluator(),
+                                      numFolds=3 if self.numFolds is None else self.numFolds)  # use 3+ folds in practice
+
+            modelName = "M" + "0" * (GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH - len(str(idx + 1))) + str(idx + 1)
+            cvrf = crossval.fit(self.trainingData)
+
+            prediction = cvrf.transform(self.validationData)
+            predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
+            metrics = MulticlassMetrics(predsAndLabels)
+
+            trainingTime = time.time() - st
+            precision = metrics.precision()
+            recall = metrics.recall()
+            accuracy = metrics.accuracy
+            roc_auc = 'NA'
+            if self.levels == 2:
+                bin_metrics = BinaryClassificationMetrics(predsAndLabels)
+                roc_auc = bin_metrics.areaUnderROC
+                precision = metrics.precision(self.inverseLabelMapping[self.targetLevel])
+                recall = metrics.recall(self.inverseLabelMapping[self.targetLevel])
+
+            # finding out the best model
+            metrics = {'accuracy': accuracy, 'precision': precision, 'recall': recall, 'roc_auc': roc_auc}
+            if metrics[evaluationMetric] > evaluationMetricVal:
+                self.bestModel = cvrf.bestModel
+                self.bestPrediction = prediction
+                evaluationMetricVal = metrics[evaluationMetric]
+
+            # Save model
+            slug = self.modelFilepath.split("/")[-1]
+            algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
+            cvrf.bestModel.save(self.modelFilepath + "/" + modelName)
+
+            # Create table output row
+            row = {"Model Id": modelName, "Slug": slug, "Selected": "False", "alwaysSelected": "False",
+                   "Run Time(Secs)": CommonUtils.round_sig(time.time() - st), "comparisonMetricUsed": None,
+                   "algorithmName": algoName}
+
+            # Algorithm evaluation metrics
+            algoEvaluationMetrics = {}
+            algoEvaluationMetrics["Accuracy"] = accuracy
+            row["comparisonMetricUsed"] = self.evaluationMetricDict["displayName"]
+            algoEvaluationMetrics["Precision"] = precision
+            algoEvaluationMetrics["Recall"] = recall
+            algoEvaluationMetrics["ROC-AUC"] = roc_auc
+
+            algoEvaluationMetrics = {k: CommonUtils.round_sig(v) for k, v in algoEvaluationMetrics.items()}
+            row.update(algoEvaluationMetrics)
+            paramsObj = dict(
+                [(k.name, str(v)) if (v == None) | (v in [True, False]) else (k.name, v) for k, v in params.items()])
+            row.update(paramsObj)
+            tableOutput.append(row)
+            if (self.levels > 2) & (self.evaluationMetricDict["name"] == "roc_auc"):
+                defaultComparisonMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[
+                    GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
+                tableOutput = sorted(tableOutput, key=lambda x: float(x[defaultComparisonMetric]), reverse=True)
+            else:
+                tableOutput = sorted(tableOutput, key=lambda x: float(x[tableOutput[0]["comparisonMetricUsed"]]),
+                                     reverse=True)
+        self.keepColumns += ["Accuracy", "Precision", "Recall", "ROC-AUC"]
+        self.keepColumns += [k.name for k in params.keys()]
+        self.keepColumns.append("Selected")
+        bestMod = tableOutput[0]
+        bestMod["Selected"] = "True"
+        bestMod["alwaysSelected"] = "True"
+        tableOutput[0] = bestMod
+        return tableOutput
+
+    def getBestModel(self):
+        return self.bestModel
+
+    def getBestPrediction(self):
+        return self.bestPrediction
+
+
+class PySparkTrainTestResult(object):
+    def __init__(self, estimator=None, paramGrid=None, appType=None,
+                 modelFilepath=None, levels=None, evaluationMetricDict=None,
+                 trainingData=None, validationData=None, train_test_ratio=None, targetLevel=None,
+                 labelMapping=None, inverseLabelMapping=None, df=None):
+        self.estimator = estimator
+        self.paramGrid = paramGrid
+        self.levels = levels
+        self.evaluationMetricDict = evaluationMetricDict
+        self.modelFilepath = modelFilepath
+        self.trainingData = trainingData
+        self.validationData = validationData
+        self.train_test_ratio = train_test_ratio
+        self.targetLevel = targetLevel
+        self.labelMapping = labelMapping
+        self.inverseLabelMapping = inverseLabelMapping
+        self.df = df
+        self.ignoreList = ["Model Id", "Precision", "Recall", "ROC-AUC", "RMSE", "MAE", "MSE", "R-Squared", "Slug",
+                           "Selected", "Run Time(Secs)", "comparisonMetricUsed", "algorithmName", "alwaysSelected"]
+        self.hideFromTable = ["Selected", "alwaysSelected", "Slug", "comparisonMetricUsed", "algorithmName"]
+        self.metricColName = "comparisonMetricUsed"
+        self.keepColumns = ["Model Id"]
+        self.bestModel = None
+        self.bestPrediction = None
+
+    def get_ignore_list(self):
+        return self.ignoreList
+
+    def get_hide_columns(self):
+        return self.hideFromTable
+
+    def get_comparison_metric_colname(self):
+        return self.metricColName
+
+    def get_keep_columns(self):
+        return self.keepColumns
+
+    def train_and_save_classification_models(self):
+        tableOutput = []
+        evaluationMetric = self.evaluationMetricDict["name"]
+        evaluationMetricVal = -1
+        for idx, params in enumerate(self.paramGrid):
+            st = time.time()
+            tvs = TrainValidationSplit(estimator=self.estimator,
+                                       estimatorParamMaps=[params],
+                                       evaluator=BinaryClassificationEvaluator() if self.levels == 2 else MulticlassClassificationEvaluator(),
+                                       trainRatio=self.train_test_ratio)
+
+            modelName = "M" + "0" * (GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH - len(str(idx + 1))) + str(idx + 1)
+            cvrf = tvs.fit(self.trainingData)
+
+            prediction = cvrf.transform(self.validationData)
+            predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
+            metrics = MulticlassMetrics(predsAndLabels)
+
+            trainingTime = time.time() - st
+            precision = metrics.precision()
+            recall = metrics.recall()
+            accuracy = metrics.accuracy
+            roc_auc = 'NA'
+            if self.levels == 2:
+                bin_metrics = BinaryClassificationMetrics(predsAndLabels)
+                roc_auc = bin_metrics.areaUnderROC
+                precision = metrics.precision(self.inverseLabelMapping[self.targetLevel])
+                recall = metrics.recall(self.inverseLabelMapping[self.targetLevel])
+
+            # finding out the best model
+            metrics = {'accuracy': accuracy, 'precision': precision, 'recall': recall, 'roc_auc': roc_auc}
+            if metrics[evaluationMetric] > evaluationMetricVal:
+                self.bestModel = cvrf.bestModel
+                self.bestPrediction = prediction
+                evaluationMetricVal = metrics[evaluationMetric]
+
+            # Save model
+            slug = self.modelFilepath.split("/")[-1]
+            algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
+            cvrf.bestModel.save(self.modelFilepath + "/" + modelName)
+
+            # Create table output row
+            row = {"Model Id": modelName, "Slug": slug, "Selected": "False", "alwaysSelected": "False",
+                   "Run Time(Secs)": CommonUtils.round_sig(time.time() - st), "comparisonMetricUsed": None,
+                   "algorithmName": algoName}
+
+            # Algorithm evaluation metrics
+            algoEvaluationMetrics = {}
+            algoEvaluationMetrics["Accuracy"] = accuracy
+            row["comparisonMetricUsed"] = self.evaluationMetricDict["displayName"]
+            algoEvaluationMetrics["Precision"] = precision
+            algoEvaluationMetrics["Recall"] = recall
+            algoEvaluationMetrics["ROC-AUC"] = roc_auc
+
+            algoEvaluationMetrics = {k: CommonUtils.round_sig(v) for k, v in algoEvaluationMetrics.items()}
+            row.update(algoEvaluationMetrics)
+            paramsObj = dict(
+                [(k.name, str(v)) if (v == None) | (v in [True, False]) else (k.name, v) for k, v in params.items()])
+            row.update(paramsObj)
+            tableOutput.append(row)
+            if (self.levels > 2) & (self.evaluationMetricDict["name"] == "roc_auc"):
+                defaultComparisonMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[
+                    GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
+                tableOutput = sorted(tableOutput, key=lambda x: float(x[defaultComparisonMetric]), reverse=True)
+            else:
+                tableOutput = sorted(tableOutput, key=lambda x: float(x[tableOutput[0]["comparisonMetricUsed"]]),
+                                     reverse=True)
+        self.keepColumns += ["Accuracy", "Precision", "Recall", "ROC-AUC"]
+        self.keepColumns += [k.name for k in params.keys()]
+        self.keepColumns.append("Selected")
+        bestMod = tableOutput[0]
+        bestMod["Selected"] = "True"
+        bestMod["alwaysSelected"] = "True"
+        tableOutput[0] = bestMod
+        return tableOutput
+
+    def getBestModel(self):
+        return self.bestModel
+
+    def getBestPrediction(self):
+        return self.bestPrediction
 
 class SklearnGridSearchResult(object):
     def __init__(self,resultDict = {},estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,modelFilepath = None,levels=None,posLabel=None,evaluationMetricDict=None):
@@ -726,8 +1059,10 @@ class SklearnGridSearchResult(object):
             print("#"*100)
             slug = self.modelFilepath.split("/")[-1]
             algoName = GLOBALSETTINGS.SLUG_MODEL_DISPLAY_NAME_MAPPING[slug]
-            joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
-            row = {"Model Id":modelName,"Slug":slug,"Selected":"False","alwaysSelected":"False","Run Time(Secs)":CommonUtils.round_sig(time.time()-st),"comparisonMetricUsed":None,"algorithmName":algoName}
+            joblib.dump(estimator, self.modelFilepath + "/" + modelName + ".pkl")
+            row = {"Model Id": modelName, "Slug": slug, "Selected": "False", "alwaysSelected": "False",
+                   "Run Time(Secs)": CommonUtils.round_sig(time.time() - st), "comparisonMetricUsed": None,
+                   "algorithmName": algoName}
             # row = {"Model Id":modelName,"Slug":slug,"Selected":"False","Run Time(Secs)":str(CommonUtils.round_sig(time.time()-st))}
             algoEvaluationMetrics = {}
             if self.appType == "REGRESSION":
@@ -742,9 +1077,12 @@ class SklearnGridSearchResult(object):
                 overfit_check =  metrics.accuracy_score(self.y_train, train_score)
                 row["comparisonMetricUsed"] = self.evaluationMetricDict["displayName"]
                 if len(self.levels) <= 2:
-                    algoEvaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
-                    algoEvaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="binary")
-                    algoEvaluationMetrics["ROC-AUC"] = metrics.roc_auc_score(self.y_test,y_score)
+                    algoEvaluationMetrics["Precision"] = metrics.precision_score(self.y_test, y_score,
+                                                                                 pos_label=self.posLabel,
+                                                                                 average="binary")
+                    algoEvaluationMetrics["Recall"] = metrics.recall_score(self.y_test, y_score,
+                                                                           pos_label=self.posLabel, average="binary")
+                    algoEvaluationMetrics["ROC-AUC"] = metrics.roc_auc_score(self.y_test, y_score)
                 elif len(self.levels) > 2:
                     algoEvaluationMetrics["Precision"] = metrics.precision_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
                     algoEvaluationMetrics["Recall"] = metrics.recall_score(self.y_test,y_score,pos_label=self.posLabel,average="macro")
@@ -794,18 +1132,22 @@ class SklearnGridSearchResult(object):
         #joblib.dump(estimator,self.modelFilepath+"/"+modelName+".pkl")
         if self.appType == "REGRESSION":
             if self.evaluationMetricDict["name"] == "r2":
-                tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
+                tableOutput = sorted(tableOutput, key=lambda x: float(x[tableOutput[0]["comparisonMetricUsed"]]),
+                                     reverse=True)
             else:
-                tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=False)
+                tableOutput = sorted(tableOutput, key=lambda x: float(x[tableOutput[0]["comparisonMetricUsed"]]),
+                                     reverse=False)
 
         elif self.appType == "CLASSIFICATION":
-            if (len(self.levels) > 2) & (self.evaluationMetricDict["name"]=="roc_auc"):
-                defaultComparisonMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
-                tableOutput = sorted(tableOutput,key=lambda x:float(x[defaultComparisonMetric]),reverse=True)
+            if (len(self.levels) > 2) & (self.evaluationMetricDict["name"] == "roc_auc"):
+                defaultComparisonMetric = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[
+                    GLOBALSETTINGS.CLASSIFICATION_MODEL_EVALUATION_METRIC]
+                tableOutput = sorted(tableOutput, key=lambda x: float(x[defaultComparisonMetric]), reverse=True)
             else:
-                tableOutput = sorted(tableOutput,key=lambda x:float(x[tableOutput[0]["comparisonMetricUsed"]]),reverse=True)
+                tableOutput = sorted(tableOutput, key=lambda x: float(x[tableOutput[0]["comparisonMetricUsed"]]),
+                                     reverse=True)
         if self.appType == "REGRESSION":
-            self.keepColumns += ["RMSE","MAE","MSE","R-Squared"]
+            self.keepColumns += ["RMSE", "MAE", "MSE", "R-Squared"]
         elif self.appType == "CLASSIFICATION":
             self.keepColumns += ["Accuracy","Precision","Recall","ROC-AUC"]
         self.keepColumns += list(paramsObj.keys())
@@ -851,32 +1193,34 @@ class SkleanrKFoldResult(object):
     sampling can be ["kfold","stratifiedKfold","stratifiedShuffleSplit"]
     by default its kfold
     """
-    def __init__(self,numFold=3,estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,levels=None,posLabel=None,sampling="kfold",evaluationMetricDict=None):
+
+    def __init__(self, numFold=3, estimator=None, x_train=None, x_test=None, y_train=None, y_test=None, appType=None,
+                 levels=None, posLabel=None, sampling="kfold", evaluationMetricDict=None):
         self.estimator = estimator
         self.appType = appType
-        self.x_train = pd.concat([x_train,x_test])
-        self.y_train = pd.concat([pd.Series(y_train),pd.Series(y_test)])
+        self.x_train = pd.concat([x_train, x_test])
+        self.y_train = pd.concat([pd.Series(y_train), pd.Series(y_test)])
         self.posLabel = posLabel
         self.levels = levels
         self.evaluationMetricDict = evaluationMetricDict
         self.kFoldOutput = []
         self.sampling = sampling
         if self.sampling == "stratifiedKfold":
-            self.kfObject = StratifiedKFold(n_splits=numFold,random_state=None, shuffle=False)
-            self.kfObjectSplit = self.kfObject.split(self.x_train,self.y_train)
+            self.kfObject = StratifiedKFold(n_splits=numFold, random_state=None, shuffle=False)
+            self.kfObjectSplit = self.kfObject.split(self.x_train, self.y_train)
         elif self.sampling == "kfold":
-            self.kfObject = KFold(n_splits=numFold,random_state=None, shuffle=False)
+            self.kfObject = KFold(n_splits=numFold, random_state=None, shuffle=False)
             self.kfObjectSplit = self.kfObject.split(self.x_train)
         elif self.sampling == "stratifiedShuffleSplit":
-            self.kfObject = StratifiedShuffleSplit(n_splits=numFold,test_size=0.5, random_state=0)
-            self.kfObjectSplit = self.kfObject.split(self.x_train,self.y_train)
+            self.kfObject = StratifiedShuffleSplit(n_splits=numFold, test_size=0.5, random_state=0)
+            self.kfObjectSplit = self.kfObject.split(self.x_train, self.y_train)
 
     def train_and_save_result(self):
         evaluationMetric = self.evaluationMetricDict["name"]
         for train_index, test_index in self.kfObject.split(self.x_train):
-            x_train_fold, x_test_fold = self.x_train.iloc[train_index,:], self.x_train.iloc[test_index,:]
+            x_train_fold, x_test_fold = self.x_train.iloc[train_index, :], self.x_train.iloc[test_index, :]
             y_train_fold, y_test_fold = self.y_train.iloc[train_index], self.y_train.iloc[test_index]
-            x_train_fold.columns = [re.sub("[[]|[]]|[<]","", col) for col in x_train_fold.columns.values]
+            x_train_fold.columns = [re.sub("[[]|[]]|[<]", "", col) for col in x_train_fold.columns.values]
             self.estimator.fit(x_train_fold, y_train_fold)
             self.estimator.feature_names = list(x_train_fold.columns.values)
             try:
@@ -885,21 +1229,26 @@ class SkleanrKFoldResult(object):
                 y_score_fold = self.estimator.predict(x_test_fold)
             metricsFold = {}
             if self.appType == "CLASSIFICATION":
-                metricsFold["accuracy"] = metrics.accuracy_score(y_test_fold,y_score_fold)
+                metricsFold["accuracy"] = metrics.accuracy_score(y_test_fold, y_score_fold)
                 if len(self.levels) <= 2:
-                    metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="binary")
-                    metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="binary")
+                    metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,
+                                                                       pos_label=self.posLabel, average="binary")
+                    metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold, pos_label=self.posLabel,
+                                                                 average="binary")
                     metricsFold["roc_auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
                 elif len(self.levels) > 2:
-                    metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="macro")
-                    metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold,pos_label=self.posLabel,average="macro")
+                    metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,
+                                                                       pos_label=self.posLabel, average="macro")
+                    metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold, pos_label=self.posLabel,
+                                                                 average="macro")
                     metricsFold["roc_auc"] = "NA"
             elif self.appType == "REGRESSION":
                 metricsFold["r2"] = metrics.r2_score(y_test_fold, y_score_fold)
                 metricsFold["neg_mean_squared_error"] = metrics.mean_squared_error(y_test_fold, y_score_fold)
                 metricsFold["neg_mean_absolute_error"] = metrics.mean_absolute_error(y_test_fold, y_score_fold)
                 try:
-                    metricsFold["neg_mean_squared_log_error"] = metrics.mean_squared_log_error(y_test_fold, y_score_fold)
+                    metricsFold["neg_mean_squared_log_error"] = metrics.mean_squared_log_error(y_test_fold,
+                                                                                               y_score_fold)
                 except:
                     metricsFold["neg_mean_squared_log_error"] = "NA"
                 metricsFold["RMSE"] = sqrt(metricsFold["neg_mean_squared_error"])
@@ -908,13 +1257,14 @@ class SkleanrKFoldResult(object):
             #except:
             self.kFoldOutput.append((self.estimator,metricsFold))
         if self.appType == "CLASSIFICATION":
-            self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)
+            self.kFoldOutput = sorted(self.kFoldOutput, key=lambda x: x[1][self.evaluationMetricDict["name"]],
+                                      reverse=True)
         elif self.appType == "REGRESSION":
             if self.evaluationMetricDict["name"] == "r2":
-                self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=True)
+                self.kFoldOutput = sorted(self.kFoldOutput, key=lambda x: x[1][self.evaluationMetricDict["name"]],
+                                          reverse=True)
             else:
                 self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=False)
-
 
     def get_kfold_result(self):
         return self.kFoldOutput

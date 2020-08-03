@@ -22,16 +22,23 @@ class ResultSetter(object):
         self.regressionNode = None
         self.anovaNode = None
         self.headNode = None
-
+        self.sparkMultilayerPerceptronModelSummary = None
         self.randomForestModelSummary = None
+        self.sparkRandomForestModelSummary = None
         self.naiveBayesModelSummary = None
+        self.ensembleModelSummary=None
         self.xgboostModelSummary = None
         self.nnModelSummary = None
         self.tfModelSummary = None
+        self.sparknaiveBayesModelSummary = None
+        self.xgboostModelSummary = None
+        self.sparkxgboostModelSummary = None
         self.logisticRegressionModelSummary = None
+        self.sparklogisticRegressionModelSummary = None
         self.svmModelSummary = None
         self.nnptcModelSummary = None
-
+        self.lgbmModelSummary=None
+        self.adaboostModelSummary=None
         self.linearRegressionModelSummary = None
         self.generalizedLinearRegressionModelSummary = None
         self.gbtRegressionModelSummary = None
@@ -39,15 +46,30 @@ class ResultSetter(object):
         self.rfRegressionModelSummary = None
         self.tfRegressionModelSummary = None
         self.nnptrModelSummary = None
+        self.sparkMultilayerPerceptronManagementSummary = None
+        self.randomForestManagementSummary = None
+        self.sparkRandomForestManagementSummary = None
+        self.naiveBayesManagementSummary = None
+        self.sparknaiveBayesManagementSummary = None
+        self.xgboostManagementSummary = None
+        self.sparkxgboostManagementSummary = None
+        self.logisticRegressionManagementSummary = None
+        self.sparklogisticRegressionManagementSummary = None
+        self.svmManagementSummary = None
+
+        self.mlpccards = []
 
         self.rfcards = []
         self.nbcards = []
         self.lrcards = []
         self.svmcards = []
+        self.encards=[]
         self.xgbcards = []
         self.nncards = []
         self.tfcards = []
         self.nnptccards = []
+        self.lgbmcards=[]
+        self.adabcards=[]
 
         self.linrcards = []
         self.glinrcards = []
@@ -57,6 +79,7 @@ class ResultSetter(object):
         self.nnptrcards = []
         self.dtreercards = []
 
+
         self.scorefreqcard = []
         self.scorechicards = []
         self.scoredtreecards = []
@@ -65,9 +88,12 @@ class ResultSetter(object):
         self.nnnodes = []
         self.tfnodes = []
         self.nbnodes = []
+        self.ennodes = []
         self.xgbnodes = []
         self.lrnodes = []
         self.nnptcnodes = []
+        self.lgbmnodes=[]
+        self.adabnodes=[]
 
         self.stockAdvisorNode = None
         self.uidTable = None
@@ -92,6 +118,7 @@ class ResultSetter(object):
         self.lrfailcard = []
         self.nnfailcard = []
         self.tffailcard= []
+        self.enfailcard=[]
         self.xgbfailcard = []
         self.nnptcfailcard = []
         self.nbfailcard = []
@@ -100,7 +127,8 @@ class ResultSetter(object):
         self.gbtfailcard = []
         self.tfregfailcard = []
         self.nnptrfailcard = []
-
+        self.lgbmfailcard =[]
+        self.adabfailcard=[]
     def set_dtr_fail_card(self,data):
         self.dtrfailcard=data
     def get_dtr_fail_card(self):
@@ -134,6 +162,11 @@ class ResultSetter(object):
         self.tffailcard=data
     def get_tf_fail_card(self):
         return self.tffailcard
+    def set_en_fail_card(self,data):
+        self.enfailcard=data
+    def get_en_fail_card(self):
+        return self.enfailcard
+
     def set_xgb_fail_card(self,data):
         self.xgbfailcard=data
     def get_xgb_fail_card(self):
@@ -146,6 +179,16 @@ class ResultSetter(object):
         self.rffailcard=data
     def get_rf_fail_card(self):
         return self.rffailcard
+
+    def set_lgbm_fail_card(self,data):
+        self.lgbmfailcard=data
+    def get_lgbm_fail_card(self):
+        return self.lgbmfailcard
+
+    def set_adab_fail_card(self,data):
+        self.adabfailcard=data
+    def get_adab_fail_card(self):
+        return self.adabfailcard
 
     def set_dtree_nodes(self,data):
         self.dtreenodes = data
@@ -183,10 +226,16 @@ class ResultSetter(object):
         self.lrnodes = data
     def set_nb_nodes(self,data):
         self.nbnodes = data
+    def set_en_nodes(self,data):
+        self.ennodes = data
     def set_xgb_nodes(self,data):
         self.xgbnodes = data
     def set_nnptc_nodes(self,data):
         self.nnptcnodes = data
+    def set_lgbm_nodes(self,data):
+        self.lgbmnodes = data
+    def set_adab_nodes(self,data):
+        self.adabnodes = data
 
     def get_all_rf_classification_nodes(self):
         return self.rfnodes
@@ -198,6 +247,12 @@ class ResultSetter(object):
         return self.lrnodes
     def get_all_xgb_classification_nodes(self):
         return self.xgbnodes
+    def get_all_en_classification_nodes(self):
+        return self.ennodes
+    def get_all_lgbm_classification_nodes(self):
+        return self.lgbmnodes
+    def get_all_adab_classification_nodes(self):
+        return self.adabnodes
     def get_all_nb_classification_nodes(self):
         return self.nbnodes
     def get_all_nnptc_classification_nodes(self):
@@ -271,6 +326,8 @@ class ResultSetter(object):
         self.rfrcards = data
     def set_dtreer_cards(self,data):
         self.dtreercards = data
+    def set_en_cards(self,data):
+        self.encards = data
     def set_xgb_cards(self,data):
         self.xgbcards = data
     def set_svm_cards(self,data):
@@ -281,9 +338,15 @@ class ResultSetter(object):
         self.tfcards = data
     def set_nnptc_cards(self,data):
         self.nnptccards = data
+    def set_lgbm_cards(self,data):
+        self.lgbmcards = data
+    def set_adab_cards(self,data):
+        self.adabcards = data
+    def set_mlpc_cards(self,data):
+        self.mlpccards = data
 
     def get_all_classification_cards(self):
-        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network (Sklearn)':self.nncards,'XGBoost':self.xgbcards, 'Random Forest':self.rfcards,'Neural Network (TensorFlow)':self.tfcards, "Neural Network (PyTorch)":self.nnptccards}
+        map_dict={'Naive Bayes':self.nbcards, 'Logistic Regression':self.lrcards, 'Neural Network (Sklearn)':self.nncards,'Ensemble':self.encards,'XGBoost':self.xgbcards,'LightGBM':self.lgbmcards,'Adaboost':self.adabcards, 'Random Forest':self.rfcards,'Neural Network (TensorFlow)':self.tfcards, "Neural Network (PyTorch)":self.nnptccards}
         all_cards=[]
         for i in self.model_order:
             all_cards=all_cards+map_dict[i]
@@ -303,17 +366,37 @@ class ResultSetter(object):
         self.nnModelSummary = data
     def set_random_forest_model_summary(self,data):
         self.randomForestModelSummary = data
+    def set_spark_multilayer_perceptron_model_summary(self,data):
+        self.sparkMultilayerPerceptronModelSummary = data
+    def set_spark_random_forest_model_summary(self, data):
+        self.sparkRandomForestModelSummary = data
+    def set_spark_logistic_regression_model_summary(self, data):
+        self.sparkLogisticRegressionModelSummary = data
+
     def set_naive_bayes_model_summary(self,data):
         self.naiveBayesModelSummary = data
+    def set_spark_naive_bayes_model_summary(self,data):
+        self.sparknaiveBayesModelSummary = data
     def set_xgboost_model_summary(self,data):
         self.xgboostModelSummary = data
+    def set_spark_xgboost_model_summary(self,data):
+        self.sparkxgboostModelSummary = data
     def set_logistic_regression_model_summary(self,data):
         self.logisticRegressionModelSummary = data
+    def set_spark_logistic_regression_model_summary(self,data):
+        self.sparklogisticRegressionModelSummary = data
+    def set_spark_multilayer_perceptron_model_summary(self, data):
+        self.sparkMultilayerPerceptronModelSummary = data
     def set_svm_model_summary(self,data):
         self.svmModelSummary = data
     def set_nnptc_model_summary(self,data):
         self.nnptcModelSummary = data
-
+    def set_lgbm_model_summary(self,data):
+        self.lgbmModelSummary =data
+    def set_adaboost_model_summary(self,data):
+        self.adaboostModelSummary =data
+    def set_ensemble_model_summary(self,data):
+        self.ensembleModelSummary =data
     def set_linear_regression_model_summary(self,data):
         self.linearRegressionModelSummary = data
     def set_generalized_linear_regression_model_summary(self,data):
@@ -331,12 +414,26 @@ class ResultSetter(object):
 
     def get_random_forest_model_summary(self):
         return self.randomForestModelSummary
+    def get_spark_logistic_regression_model_summary(self):
+        return self.sparkLogisticRegressionModelSummary
+    def get_spark_multilayer_perceptron_model_summary(self):
+        return self.sparkMultilayerPerceptronModelSummary
+    def get_spark_random_forest_model_summary(self):
+        return self.sparkRandomForestModelSummary
     def get_naive_bayes_model_summary(self):
         return self.naiveBayesModelSummary
+    def get_spark_naive_bayes_model_summary(self):
+        return self.sparknaiveBayesModelSummary
     def get_xgboost_model_summary(self):
         return self.xgboostModelSummary
+    def get_spark_xgboost_model_summary(self):
+        return self.sparkxgboostModelSummary
     def get_logistic_regression_model_summary(self):
         return self.logisticRegressionModelSummary
+    def get_spark_logistic_regression_model_summary(self):
+        return self.sparklogisticRegressionModelSummary
+    def get_spark_multilayer_perceptron_model_summary(self):
+        return self.sparkMultilayerPerceptronModelSummary
     def get_svm_model_summary(self):
         return self.svmModelSummary
     def get_nn_model_summary(self):
@@ -345,6 +442,12 @@ class ResultSetter(object):
         return self.tfModelSummary
     def get_nnptc_model_summary(self):
         return self.nnptcModelSummary
+    def get_lgbm_model_summary(self):
+        return self.lgbmModelSummary
+    def get_adaboost_model_summary(self):
+        return self.adaboostModelSummary
+    def get_ensemble_model_summary(self):
+        return self.ensembleModelSummary
 
     def get_linear_regression_model_summary(self):
         return self.linearRegressionModelSummary
@@ -457,3 +560,63 @@ class ResultSetter(object):
 
     def set_coeff_card_regression_score(self,coeffCardScore):
         self.coeffCardScore = coeffCardScore
+
+    def set_random_forest_management_summary(self, data):
+        self.randomForestManagementSummary = data
+
+    def get_random_forest_management_summary(self):
+        return self.randomForestManagementSummary
+
+    def set_xgboost_management_summary(self, data):
+        self.xgboostManagementSummary = data
+
+    def get_xgboost_management_summary(self):
+        return self.xgboostManagementSummary
+
+    def set_logistic_regression_management_summary(self, data):
+        self.logisticRegressionManagementSummary = data
+
+    def get_logistic_regression_management_summary(self):
+        return self.logisticRegressionManagementSummary
+
+    def set_naive_bayes_management_summary(self, data):
+        self.naiveBayesManagementSummary = data
+
+    def get_naive_bayes_management_summary(self):
+        return self.naiveBayesManagementSummary
+
+    def set_svm_management_summary(self, data):
+        self.svmManagementSummary = data
+
+    def get_svm_management_summary(self):
+        return self.svmManagementSummary
+
+    def set_spark_random_forest_management_summary(self, data):
+        self.sparkRandomForestManagementSummary = data
+
+    def get_spark_random_forest_management_summary(self):
+        return self.sparkRandomForestManagementSummary
+
+    def set_spark_naive_bayes_management_summary(self, data):
+        self.sparknaiveBayesManagementSummary = data
+
+    def get_spark_naive_bayes_management_summary(self):
+        return self.sparknaiveBayesManagementSummary
+
+    def set_spark_logistic_regression_management_summary(self, data):
+        self.sparklogisticRegressionManagementSummary = data
+
+    def get_spark_logistic_regression_management_summary(self):
+        return self.sparklogisticRegressionManagementSummary
+
+    def set_spark_multilayer_perceptron_management_summary(self, data):
+        self.sparkMultilayerPerceptronManagementSummary = data
+
+    def get_spark_multilayer_perceptron_management_summary(self):
+        return self.sparkMultilayerPerceptronManagementSummary
+
+    def set_spark_xgboost_management_summary(self, data):
+        self.sparkxgboostManagementSummary = data
+
+    def get_spark_xgboost_management_summary(self):
+        return self.sparkxgboostManagementSummary

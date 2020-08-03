@@ -76,6 +76,8 @@ class RFClassificationModelScript(object):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
+        self._model=None
+
 
         self._scriptStages = {
             "initialization":{
@@ -305,9 +307,13 @@ class RFClassificationModelScript(object):
                         clf.fit(x_train, y_train)
                         clf.feature_names = list(x_train.columns.values)
                         bestEstimator = clf
-
+            try:
+                self._model = bestEstimator.best_estimator_
+            except:
+                self._model = bestEstimator
             trainingTime = time.time()-st
             y_score = bestEstimator.predict(x_test)
+
             try:
                 y_prob = bestEstimator.predict_proba(x_test)
             except:
@@ -487,6 +493,8 @@ class RFClassificationModelScript(object):
             self._model_summary.set_num_trees(100)
             self._model_summary.set_num_rules(300)
             self._model_summary.set_target_level(self._targetLevel)
+
+
             if not algoSetting.is_hyperparameter_tuning_enabled():
                 modelDropDownObj = {
                             "name":self._model_summary.get_algorithm_name(),
@@ -627,6 +635,7 @@ class RFClassificationModelScript(object):
                 self._prediction_narrative.add_a_card(card)
             self._result_setter.set_model_summary({"randomforest":json.loads(CommonUtils.convert_python_object_to_json(self._model_summary))})
             self._result_setter.set_random_forest_model_summary(modelSummaryJson)
+            # self._result_setter.set_random_forest_management_summary(modelManagementJson)
             self._result_setter.set_rf_cards(rfCards)
             self._result_setter.set_rf_nodes([RF_Overview_Node,RF_Performance_Node,RF_Deployment_Node])
             self._result_setter.set_rf_fail_card({"Algorithm_Name":"randomforest","success":"True"})
