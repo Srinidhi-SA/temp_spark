@@ -38,8 +38,12 @@ class FeatureEngineeringAutoML():
             self.data_change_dict['one_hot_encoded'].append(col)
         #print(self.data_frame)
     def sk_one_hot_encoding(self,col_list):
-        oh_enc=OneHotEncoder(sparse=False)
-        encoded_df=pd.DataFrame(oh_enc.fit_transform(self.data_frame[col_list]),columns=oh_enc.get_feature_names())
+        oh_enc = OneHotEncoder(sparse=False)
+        new_df  = oh_enc.fit_transform(self.data_frame[col_list])
+        uniq_vals = self.data_frame[col_list].apply(lambda x: x.value_counts()).unstack()
+        uniq_vals = uniq_vals[~uniq_vals.isnull()]
+        enc_cols = list(uniq_vals.index.map('{0[0]}_{0[1]}'.format))
+        encoded_df=pd.DataFrame(new_df,columns=enc_cols,index=self.data_frame.index,dtype='int64')
         encoded_df.columns = [re.sub('\W+', '_', col.strip()) for col in encoded_df.columns]
         self.data_frame=self.data_frame[self.data_frame.columns.difference(col_list)]
         self.data_frame.reset_index(drop=True, inplace=True)
