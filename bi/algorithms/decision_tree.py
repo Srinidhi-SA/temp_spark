@@ -393,7 +393,11 @@ class DecisionTrees(object):
                 return(None)
             new_rules['fruits']=dict_tree
             vals=list(dict_tree[-1].values())
-            new_rules['probability']=round(old_div(max(vals)*100.0,sum(vals)),2)
+            extract_level = new_rules['name']
+            rule_target_level =  extract_level.split(':')[-1].lstrip()
+            new_level_dict = dict_tree[-1]
+            new_rules['probability']=round(old_div(new_level_dict[rule_target_level]*100.0,sum(vals)),2)
+            print(new_rules['probability'])
             if 'Predict:' in rules['name'] and num_success>0:
                 return new_rules
 
