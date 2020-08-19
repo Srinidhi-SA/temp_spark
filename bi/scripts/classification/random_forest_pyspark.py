@@ -19,6 +19,7 @@ from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
+from bi.common import TableData
 from bi.common import MLModelSummary, NormalCard, KpiData, C3ChartData, HtmlData
 from bi.common import SklearnGridSearchResult, SkleanrKFoldResult, PySparkTrainTestResult
 from bi.common.mlmodelclasses import PySparkGridSearchResult
@@ -141,7 +142,10 @@ class RandomForestPysparkScript(object):
         labelIdx = labelIndexer.fit(trainingData)
         labelMapping = {k:v for k, v in enumerate(labelIdx.labels)}
         inverseLabelMapping = {v:float(k) for k, v in enumerate(labelIdx.labels)}
-
+        if self._dataframe_context.get_trainerMode() == "autoML":
+            automl_enable=True
+        else:
+            automl_enable=False
         clf = RandomForestClassifier()
         if not algoSetting.is_hyperparameter_tuning_enabled():
             algoParams = algoSetting.get_params_dict()
@@ -187,6 +191,19 @@ class RandomForestPysparkScript(object):
                 prediction = pySparkHyperParameterResultObj.getBestPrediction()
 
             else:
+                if automl_enable:
+                    params_grid = {
+                                    'minInstancesPerNode': [2,3],
+                                    'numTrees': [10,20,100],
+                                    'impurity': ['gini']}
+                    algoParams = {getattr(clf, k):v if isinstance(v, list) else \
+                                   [v] for k,v in params_grid.items() if k in clfParams}
+                    paramGrid = ParamGridBuilder()
+                    for k,v in algoParams.items():
+                        if v == [None] * len(v):
+                             continue
+                        paramGrid = paramGrid.addGrid(k,v)
+                    paramGrid = paramGrid.build()
                 crossval = CrossValidator(estimator=estimator,
                               estimatorParamMaps=paramGrid,
                               evaluator=BinaryClassificationEvaluator() if levels == 2 else MulticlassClassificationEvaluator(),
@@ -636,6 +653,7 @@ class RandomForestPysparkScript(object):
             self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
             self._score_summary["result_column"] = result_column
             scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column,"probability"]).toPandas()
+            scored_dataframe['predicted_probability'] = probability_dataframe["predicted_probability"].values
             # scored_dataframe = scored_dataframe.rename(index=str, columns={"predicted_probability": "probability"})
         else:
             self._score_summary["prediction_split"] = []

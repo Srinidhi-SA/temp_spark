@@ -329,17 +329,17 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     result_setter.set_xgb_fail_card({"Algorithm_Name":"xgboost","success":"False"})
                     CommonUtils.print_errors_and_store_traceback(LOGGER,"xgboost",e)
                     CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
-            # if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["LightGBM"]:
-            #     try:
-            #         st = time.time()
-            #         lgb_obj = LgbmScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
-            #         lgb_obj.Train()
-            #         automl_clf_models.append(lgb_obj._model)
-            #         print("lightgbm Model Done in ", time.time() - st,  " seconds.")
-            #     except Exception as e:
-            #         result_setter.set_lgbm_fail_card({"Algorithm_Name":"LightGBM","success":"False"})
-            #         CommonUtils.print_errors_and_store_traceback(LOGGER,"LightGBM",e)
-            #         CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["LightGBM"]:
+                try:
+                    st = time.time()
+                    lgb_obj = LgbmScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
+                    lgb_obj.Train()
+                    automl_clf_models.append(lgb_obj._model)
+                    print("lightgbm Model Done in ", time.time() - st,  " seconds.")
+                except Exception as e:
+                    result_setter.set_lgbm_fail_card({"Algorithm_Name":"LightGBM","success":"False"})
+                    CommonUtils.print_errors_and_store_traceback(LOGGER,"LightGBM",e)
+                    CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["adaboost"]:
                 try:
                     st = time.time()

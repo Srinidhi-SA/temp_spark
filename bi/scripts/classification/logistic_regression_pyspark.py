@@ -13,7 +13,7 @@ try:
     import pickle as pickle
 except:
     import pickle
-
+from bi.common import TableData
 from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.narratives import utils as NarrativesUtils
@@ -156,7 +156,10 @@ class LogisticRegressionPysparkScript(object):
         labelIdx = labelIndexer.fit(trainingData)
         labelMapping = {k:v for k, v in enumerate(labelIdx.labels)}
         inverseLabelMapping = {v:float(k) for k, v in enumerate(labelIdx.labels)}
-
+        if self._dataframe_context.get_trainerMode() == "autoML":
+            automl_enable=True
+        else:
+            automl_enable=False
 
         if self._classifier == "lr":
             if levels == 2:
@@ -220,6 +223,12 @@ class LogisticRegressionPysparkScript(object):
                 prediction = pySparkHyperParameterResultObj.getBestPrediction()
 
             else:
+                if automl_enable:
+                    paramGrid = ParamGridBuilder()\
+                    .addGrid(clf.regParam, [0.1, 0.01]) \
+                    .addGrid(clf.fitIntercept, [False, True])\
+                    .addGrid(clf.elasticNetParam, [0.0, 0.5, 1.0])\
+                    .build()
                 crossval = CrossValidator(estimator=estimator,
                               estimatorParamMaps=paramGrid,
                               evaluator=BinaryClassificationEvaluator() if levels == 2 else MulticlassClassificationEvaluator(),
@@ -656,6 +665,7 @@ class LogisticRegressionPysparkScript(object):
             self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
             self._score_summary["result_column"] = result_column
             scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column,"probability"]).toPandas()
+            scored_dataframe['predicted_probability'] = probability_dataframe["predicted_probability"].values
             # scored_dataframe = scored_dataframe.rename(index=str, columns={"predicted_probability": "probability"})
         else:
             self._score_summary["prediction_split"] = []

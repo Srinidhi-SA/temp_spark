@@ -17,6 +17,7 @@ from pyspark.sql import SQLContext
 from bi.common import utils as CommonUtils
 from bi.algorithms import utils as MLUtils
 from bi.common import DataFrameHelper
+from bi.common import TableData
 from bi.common import MLModelSummary, NormalCard, KpiData, C3ChartData, HtmlData
 from bi.common import SklearnGridSearchResult, SkleanrKFoldResult
 from bi.common.mlmodelclasses import PySparkGridSearchResult, PySparkTrainTestResult
@@ -152,6 +153,10 @@ class XGBoostPysparkScript(object):
         labelMapping = {k:v for k, v in enumerate(labelIdx.labels)}
         inverseLabelMapping = {v:float(k) for k, v in enumerate(labelIdx.labels)}
 
+        if self._dataframe_context.get_trainerMode() == "autoML":
+            automl_enable=True
+        else:
+            automl_enable=False
         #gbt = GBTClassifier()
         #clf = OneVsRest(classifier=gbt)
         clf= DecisionTreeClassifier()
@@ -212,6 +217,8 @@ class XGBoostPysparkScript(object):
                 prediction = pySparkHyperParameterResultObj.getBestPrediction()
 
             else:
+                if automl_enable:
+                    paramGrid=(ParamGridBuilder().addGrid(clf.maxDepth,[2,4,5,6]).addGrid(clf.minInfoGain,[0.0, 0.05]).addGrid(clf.impurity,['entropy' , 'gini']).addGrid(clf.maxBins, [32]).build())
                 crossval = CrossValidator(estimator=estimator,
                               estimatorParamMaps=paramGrid,
                               evaluator=BinaryClassificationEvaluator().setRawPredictionCol("probability") if levels == 2 else MulticlassClassificationEvaluator(),
@@ -639,6 +646,7 @@ class XGBoostPysparkScript(object):
             self._score_summary["prediction_split"] = MLUtils.calculate_scored_probability_stats(probability_dataframe)
             self._score_summary["result_column"] = result_column
             scored_dataframe = transformed.select(categorical_columns+time_dimension_columns+numerical_columns+[result_column,"probability"]).toPandas()
+            scored_dataframe['predicted_probability'] = probability_dataframe["predicted_probability"].values
             # scored_dataframe = scored_dataframe.rename(index=str, columns={"predicted_probability": "probability"})
         else:
             self._score_summary["prediction_split"] = []

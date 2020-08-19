@@ -394,7 +394,7 @@ class DecisionTrees(object):
             new_rules['fruits']=dict_tree
             vals=list(dict_tree[-1].values())
             extract_level = new_rules['name']
-            rule_target_level =  extract_level.split(':')[-1].lstrip()
+            rule_target_level =  extract_level.split(':')[-1][1:]
             new_level_dict = dict_tree[-1]
             new_rules['probability']=round(old_div(new_level_dict[rule_target_level]*100.0,sum(vals)),2)
             print(new_rules['probability'])
