@@ -424,14 +424,6 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["Neural Network (Sklearn)"] and obj.get_algorithm_name() == "Neural Network (Sklearn)":
                 try:
                     st = time.time()
-                    if not pandas_flag:
-                        tree_df = tree_df.toPandas()
-                        linear_df = linear_df.toPandas()
-                        tree_df.columns = [re.sub("[[]|[]]|[<]","", col) for col in tree_df.columns.values]        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-                        dataframe_helper_tree_df.set_train_test_data(tree_df)
-                        linear_df.columns = [re.sub("[[]|[]]|[<]","", col) for col in linear_df.columns.values]        # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
-                        dataframe_helper_tree_df.set_train_test_data(linear_df)
-
                     nn_obj = NeuralNetworkScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     nn_obj.Train()
                     #automl_clf_models.append(nn_obj._model)
