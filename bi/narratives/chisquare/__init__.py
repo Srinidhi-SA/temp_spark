@@ -168,16 +168,16 @@ class ChiSquareNarratives(object):
             for k,v in list(effect_size_dict.items()):
                 "rounding the chart data for keydrivers tab"
                 if round(float(v),2) > 0:
-                    chart_data.append({"key":k,"value":round(float(v),2)})
+                    chart_data.append({"Attribute":k,"Effect_Size":round(float(v),2)})
                     chartDataValues.append(round(float(v),2))
-            chart_data = sorted(chart_data,key=lambda x:x["value"],reverse=True)
+            chart_data = sorted(chart_data,key=lambda x:x["Effect_Size"],reverse=True)
             chart_json = ChartJson()
             chart_json.set_data(chart_data)
             chart_json.set_chart_type("bar")
             # chart_json.set_label_text({'x':'Dimensions','y':'Effect Size (Cramers-V)'})
             chart_json.set_label_text({'x':'  ','y':'Effect Size (Cramers-V)'})
             chart_json.set_axis_rotation(True)
-            chart_json.set_axes({"x":"key","y":"value"})
+            chart_json.set_axes({"x":"Attribute","y":"Effect_Size"})
             chart_json.set_yaxis_number_format(".2f")
             # chart_json.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
             self.narratives['main_card']['chart']=chart
@@ -195,19 +195,19 @@ class ChiSquareNarratives(object):
                 statistical_info_array=[
                     ("Test Type","Chi-Square"),
                     ("Effect Size","Cramer's V"),
-                    ("Max Effect Size",chart_data[0]["key"]),
-                    ("Min Effect Size",chart_data[-1]["key"]),
+                    ("Max Effect Size",chart_data[0]["Attribute"]),
+                    ("Min Effect Size",chart_data[-1]["Attribute"]),
                     ]
                 statistical_inferenc = ""
                 if len(chart_data) == 1:
                     statistical_inference = "{} is the only variable that have significant association with the {} (Target) having an \
-                     Effect size of {}".format(chart_data[0]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4))
+                     Effect size of {}".format(chart_data[0]["Attribute"],self._dataframe_context.get_result_column(),round(chart_data[0]["Effect_Size"],4))
                 elif len(chart_data) == 2:
                     statistical_inference = "There are two variables ({} and {}) that have significant association with the {} (Target) and the \
-                     Effect size ranges are {} and {} respectively".format(chart_data[0]["key"],chart_data[1]["key"],self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[1]["value"],4))
+                     Effect size ranges are {} and {} respectively".format(chart_data[0]["Attribute"],chart_data[1]["Attribute"],self._dataframe_context.get_result_column(),round(chart_data[0]["Effect_Size"],4),round(chart_data[1]["Effect_Size"],4))
                 else:
                     statistical_inference = "There are {} variables that have significant association with the {} (Target) and the \
-                     Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["value"],4),round(chart_data[-1]["value"],4))
+                     Effect size ranges from {} to {}".format(len(chart_data),self._dataframe_context.get_result_column(),round(chart_data[0]["Effect_Size"],4),round(chart_data[-1]["Effect_Size"],4))
                 if statistical_inference != "":
                     statistical_info_array.append(("Inference",statistical_inference))
                 statistical_info_array = NarrativesUtils.statistical_info_array_formatter(statistical_info_array)
