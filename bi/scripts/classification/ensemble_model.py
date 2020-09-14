@@ -81,6 +81,7 @@ class EnsembleModelScript(object):
         self._mlEnv = mlEnvironment
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
         self._model=None
+        self._threshold = False
         self._predictions=None
         self._automl_clf_models=automl_clf_models
         self._scriptStages = {
@@ -311,18 +312,24 @@ class EnsembleModelScript(object):
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()#######################3")
+                    y_test = kFoldClass.get_ytest()[0]
+                    y_score = kFoldClass.get_yscore()[0]
+                    y_prob = kFoldClass.get_yprob()[0]
+                    self._threshold = kFoldClass.get_threshold()[0]
+                    bestEstimator.fit(x_train, y_train)
 
 
             trainingTime = time.time()-st
-            try:
-                y_score = bestEstimator.best_estimator_.predict(x_test)
-            except:
-                y_score = bestEstimator.predict(x_test)
+            if not automl_enable:
+                try:
+                    y_score = bestEstimator.best_estimator_.predict(x_test)
+                except:
+                    y_score = bestEstimator.predict(x_test)
 
-            try:
-                y_prob = bestEstimator.predict_proba(x_test)
-            except:
-                y_prob = [0]*len(y_score)
+                try:
+                    y_prob = bestEstimator.predict_proba(x_test)
+                except:
+                    y_prob = [0]*len(y_score)
 
             # overall_precision_recall = MLUtils.calculate_overall_precision_recall(y_test,y_score,targetLevel = self._targetLevel)
             # print overall_precision_recall
@@ -504,7 +511,8 @@ class EnsembleModelScript(object):
                             "evaluationMetricValue": locals()[evaluationMetricDict["name"]], # self._model_summary.get_model_accuracy(),
                             "evaluationMetricName": evaluationMetricDict["name"],
                             "slug":self._model_summary.get_slug(),
-                            "Model Id":modelName
+                            "Model Id":modelName,
+                            "threshold": str(self._threshold)
                             }
 
                 modelSummaryJson = {
@@ -716,6 +724,7 @@ class EnsembleModelScript(object):
             trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]
+            threshold = self._dataframe_context.get_model_threshold()
             score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
@@ -735,10 +744,9 @@ class EnsembleModelScript(object):
             pandas_df = pandas_df[trained_model.feature_names]
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
-            y_prob = MLUtils.calculate_predicted_probability(y_prob)
-            y_prob=list([round(x,2) for x in y_prob])
-            score = {"predicted_class":y_score,"predicted_probability":y_prob}
-
+            y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            predict_prob = list([round(x, 2) for x in predict_prob])
+            score = {"predicted_class": y_score, "predicted_probability": predict_prob, "class_probability": y_prob}
         df["predicted_class"] = score["predicted_class"]
         labelMappingDict = self._dataframe_context.get_label_map()
         df["predicted_class"] = df["predicted_class"].apply(lambda x:labelMappingDict[x] if x != None else "NA")

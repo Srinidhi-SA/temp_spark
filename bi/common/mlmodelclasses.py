@@ -1193,13 +1193,11 @@ class SkleanrKFoldResult(object):
     sampling can be ["kfold","stratifiedKfold","stratifiedShuffleSplit"]
     by default its kfold
     """
-
-    def __init__(self, numFold=3, estimator=None, x_train=None, x_test=None, y_train=None, y_test=None, appType=None,
-                 levels=None, posLabel=None, sampling="kfold", evaluationMetricDict=None):
+    def __init__(self,numFold=3,estimator=None,x_train=None,x_test=None,y_train=None,y_test=None,appType=None,levels=None,posLabel=None,sampling="stratifiedKfold",evaluationMetricDict=None):
         self.estimator = estimator
         self.appType = appType
-        self.x_train = pd.concat([x_train, x_test])
-        self.y_train = pd.concat([pd.Series(y_train), pd.Series(y_test)])
+        self.x_train = x_train
+        self.y_train = y_train
         self.posLabel = posLabel
         self.levels = levels
         self.evaluationMetricDict = evaluationMetricDict
@@ -1217,17 +1215,37 @@ class SkleanrKFoldResult(object):
 
     def train_and_save_result(self):
         evaluationMetric = self.evaluationMetricDict["name"]
-        for train_index, test_index in self.kfObject.split(self.x_train):
+        for train_index, test_index in self.kfObject.split(self.x_train,self.y_train):
             x_train_fold, x_test_fold = self.x_train.iloc[train_index, :], self.x_train.iloc[test_index, :]
             y_train_fold, y_test_fold = self.y_train.iloc[train_index], self.y_train.iloc[test_index]
             x_train_fold.columns = [re.sub("[[]|[]]|[<]", "", col) for col in x_train_fold.columns.values]
             self.estimator.fit(x_train_fold, y_train_fold)
             self.estimator.feature_names = list(x_train_fold.columns.values)
-            try:
-                y_score_fold = self.estimator.best_estimator_.predict(x_test_fold)
-            except:
-                y_score_fold = self.estimator.predict(x_test_fold)
+            if self.appType == "CLASSIFICATION":
+                try:
+                    # y_score_fold = self.estimator.best_estimator_.predict(x_test_fold)
+                    y_score_fold, y_prob, threshold = self.set_fold_accuracy(self.estimator.best_estimator_,
+                                                                             x_test_fold, y_test_fold, self.levels)
+                except:
+                    # y_score_fold = self.estimator.predict(x_test_fold)
+                    y_score_fold, y_prob, threshold = self.set_fold_accuracy(self.estimator, x_test_fold, y_test_fold,
+                                                                             self.levels)
+            else:
+                y_prob = None
+                threshold = False
+                try:
+                    y_score_fold = self.estimator.best_estimator_.predict(x_test_fold)
+                except:
+                    y_score_fold = self.estimator.predict(x_test_fold)
             metricsFold = {}
+            y_test = []
+            y_score = []
+            y_proba = []
+            thresholds = []
+            y_test.append(y_test_fold)
+            y_score.append(y_score_fold)
+            y_proba.append(y_prob)
+            thresholds.append(threshold)
             if self.appType == "CLASSIFICATION":
                 metricsFold["accuracy"] = metrics.accuracy_score(y_test_fold, y_score_fold)
                 if len(self.levels) <= 2:
@@ -1235,7 +1253,9 @@ class SkleanrKFoldResult(object):
                                                                        pos_label=self.posLabel, average="binary")
                     metricsFold["recall"] = metrics.recall_score(y_test_fold, y_score_fold, pos_label=self.posLabel,
                                                                  average="binary")
-                    metricsFold["roc_auc"] = metrics.roc_auc_score(y_test_fold, y_score_fold)
+                    fpr, tpr, _ = metrics.roc_curve(y_test_fold, y_prob[:, self.posLabel], pos_label=self.posLabel)
+                    roc_auc_score = metrics.auc(fpr, tpr)
+                    metricsFold["roc_auc"] = roc_auc_score
                 elif len(self.levels) > 2:
                     metricsFold["precision"] = metrics.precision_score(y_test_fold, y_score_fold,
                                                                        pos_label=self.posLabel, average="macro")
@@ -1252,10 +1272,10 @@ class SkleanrKFoldResult(object):
                 except:
                     metricsFold["neg_mean_squared_log_error"] = "NA"
                 metricsFold["RMSE"] = sqrt(metricsFold["neg_mean_squared_error"])
-            #try:
-                #self.kFoldOutput.append((self.estimator.best_estimator_,metricsFold))
-            #except:
-            self.kFoldOutput.append((self.estimator,metricsFold))
+            # try:
+            # self.kFoldOutput.append((self.estimator.best_estimator_,metricsFold))
+            # except:
+            self.kFoldOutput.append((self.estimator, metricsFold, y_test, y_score, y_proba, thresholds))
         if self.appType == "CLASSIFICATION":
             self.kFoldOutput = sorted(self.kFoldOutput, key=lambda x: x[1][self.evaluationMetricDict["name"]],
                                       reverse=True)
@@ -1264,10 +1284,41 @@ class SkleanrKFoldResult(object):
                 self.kFoldOutput = sorted(self.kFoldOutput, key=lambda x: x[1][self.evaluationMetricDict["name"]],
                                           reverse=True)
             else:
-                self.kFoldOutput = sorted(self.kFoldOutput,key=lambda x:x[1][self.evaluationMetricDict["name"]],reverse=False)
+                self.kFoldOutput = sorted(self.kFoldOutput, key=lambda x: x[1][self.evaluationMetricDict["name"]],
+                                          reverse=False)
 
     def get_kfold_result(self):
         return self.kFoldOutput
 
     def get_best_estimator(self):
         return self.kFoldOutput[0][0]
+
+    def set_fold_accuracy(self, estimator, x_test_fold, y_test_fold, levels):
+        threshold = False
+        if len(levels) == 1:
+            y_score = estimator.predict(x_test_fold)
+        elif len(levels) == 2:
+            y_proba = estimator.predict_proba(x_test_fold)[:, 1]
+            fpr, tpr, threshold = metrics.roc_curve(y_test_fold, y_proba)
+            thresh_point = np.argmax(tpr - fpr)
+            y_score = [1 if x >= threshold[thresh_point] else 0 for x in y_proba]
+            threshold = threshold[thresh_point]
+        else:
+            y_score = estimator.predict(x_test_fold)
+        try:
+            y_prob = estimator.predict_proba(x_test_fold)
+        except:
+            y_prob = [0] * len(y_score)
+        return y_score, y_prob, threshold
+
+    def get_ytest(self):
+        return self.kFoldOutput[0][2]
+
+    def get_yscore(self):
+        return self.kFoldOutput[0][3]
+
+    def get_yprob(self):
+        return self.kFoldOutput[0][4]
+
+    def get_threshold(self):
+        return self.kFoldOutput[0][5]

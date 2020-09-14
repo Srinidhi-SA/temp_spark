@@ -39,18 +39,32 @@ class DataPreprocessingAutoML:
             self.data_frame = self.data_frame.dropDuplicates()
 
     def drop_constant_unique_cols(self):
-        if not self._pandas_flag:
-            new_df  = self.data_frame.select([col for col in self.data_frame.columns if 1<self.data_frame.select(col).distinct().count()<self.data_frame.count()])
-            if self.target not in new_df.columns:
-                new_df = new_df.withColumn(self.target, self.data_frame[self.target])
+        self.data_frame = self.data_frame.loc[:, (self.data_frame.nunique() != 1)]
+        float_df = self.data_frame.loc[:, (self.data_frame.dtypes == 'float64')]
+        int_df = self.data_frame.loc[:, (self.data_frame.dtypes == 'int64')]
+        other_df  = self.data_frame .loc[:, ((self.data_frame.dtypes=='object')&(self.data_frame.nunique()!=self.data_frame.shape[0]))]
+        new_df = pd.concat([other_df, float_df, int_df], axis=1)
+        #new_df = new_df.loc[:, (new_df.nunique() != new_df.shape[0])]
+        #new_df  = self.data_frame .loc[:, (self.data_frame.nunique() != self.data_frame .shape[0])]
+        #new_df=self.data_frame
+        if self.target not in new_df.columns:
+            new_df[self.target] = self.data_frame[self.target]
             self.data_frame = new_df
         else:
-            self.data_frame  = self.data_frame.loc[:, (self.data_frame .nunique() != 1)]
-            new_df  = self.data_frame.loc[:, (self.data_frame.nunique() != self.data_frame .shape[0])]
-            if self.target not in new_df.columns:
-                new_df[self.target] = self.data_frame[self.target]
             self.data_frame = new_df
         self.data_change_dict['dropped_columns_list'] = []
+        #if not self._pandas_flag:
+        #    new_df  = self.data_frame.select([col for col in self.data_frame.columns if 1<self.data_frame.select(col).distinct().count()<self.data_frame.count()])
+        #    if self.target not in new_df.columns:
+        #        new_df = new_df.withColumn(self.target, self.data_frame[self.target])
+        #    self.data_frame = new_df
+        #else:
+        #    self.data_frame  = self.data_frame.loc[:, (self.data_frame .nunique() != 1)]
+        #    new_df  = self.data_frame.loc[:, (self.data_frame.nunique() != self.data_frame .shape[0])]
+        #    if self.target not in new_df.columns:
+        #        new_df[self.target] = self.data_frame[self.target]
+        #    self.data_frame = new_df
+        #self.data_change_dict['dropped_columns_list'] = []
         def dropped_col_update(list_element):
             if list_element["column_name"] not in self.data_frame.columns:
                 list_element["dropped_column_flag"] = True

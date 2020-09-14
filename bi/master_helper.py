@@ -1036,7 +1036,7 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
 
             print("Scoring Done in ", time.time() - st,  " seconds.")
         elif "LightGBM" in selected_model_for_prediction:
-            trainedModel = LgbmScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = LgbmScript(tree_df, df_helper_tree_df, dataframe_context, spark, story_narrative,result_setter,metaParserInstance_tree_df)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -1049,6 +1049,15 @@ def score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linea
                 trainedModel.Predict()
             except Exception as e:
                 CommonUtils.print_errors_and_store_traceback(LOGGER,"Adaboost",e)
+                CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
+            print("Scoring Done in ", time.time() - st,  " seconds.")
+        elif "ensemble" in selected_model_for_prediction:
+            automl_clf_models = []
+            trainedModel = EnsembleModelScript(tree_df,linear_df, df_helper_tree_df,df_helper_linear_df, dataframe_context, spark, story_narrative,result_setter,metaParserInstance_tree_df,automl_clf_models)
+            try:
+                trainedModel.Predict()
+            except Exception as e:
+                CommonUtils.print_errors_and_store_traceback(LOGGER,"Ensemble",e)
                 CommonUtils.save_error_messages(errorURL,APP_NAME,e,ignore=ignoreMsg)
             print("Scoring Done in ", time.time() - st,  " seconds.")
         else:
