@@ -50,7 +50,7 @@ def main(configJson):
             debugMode = True
             ignoreMsg = True
             # Test Configs are defined in bi/settings/configs/localConfigs
-            jobType = "story"
+            jobType = "training"
             if jobType == "testCase":
                 configJson = get_test_configs(jobType,testFor = "chisquare")
             else:
@@ -82,6 +82,11 @@ def main(configJson):
     print("||############################## Parsing Config file ##############################||")
 
     config = configJson["config"]
+    if "TRAINER_MODE" in config and config["TRAINER_MODE"] == "autoML":###or can get trainer mode  automl
+        if config['FILE_SETTINGS']['inputfile'][0].startswith("https:"):
+            config['ALGORITHM_SETTING'] = GLOBALSETTINGS.algorithm_settings_pandas
+        else:
+            config['ALGORITHM_SETTING'] = GLOBALSETTINGS.algorithm_settings_pyspark
     jobConfig = configJson["job_config"]
     jobType = jobConfig["job_type"]
     if jobType == "prediction":
