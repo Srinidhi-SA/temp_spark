@@ -297,9 +297,9 @@ class EnsembleModelScript(object):
                 algoParams["random_state"] = 423
 
                 if automl_enable:
-                    weight1=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,0.05))
-                    weight2=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,0.5))
-                    weight3=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,1.0))
+                    #weight1=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,0.05))
+                    #weight2=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,0.5))
+                    #weight3=list(self.ensemble_weights(self._automl_clf_models,x_test,y_test,x_test_linear,y_test_linear,1.0))
                     params_grid = {"weights":[[1 for i in self._automl_clf_models]]}
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 2}
                     clfRand = RandomizedSearchCV(clf,params_grid)

@@ -334,7 +334,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     st = time.time()
                     lgb_obj = LgbmScript(tree_df, dataframe_helper_tree_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_tree_df)
                     lgb_obj.Train()
-                    automl_clf_models.append(lgb_obj._model)
+                    #automl_clf_models.append(lgb_obj._model)
                     print("lightgbm Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
                     result_setter.set_lgbm_fail_card({"Algorithm_Name":"LightGBM","success":"False"})
@@ -357,7 +357,7 @@ def train_models_automl(spark,linear_df,tree_df,dataframe_context,dataframe_help
                     if pandas_flag:
                         lr_obj = LogisticRegressionScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
                         lr_obj.Train()
-                        automl_clf_models.append(lr_obj._model)
+                        #automl_clf_models.append(lr_obj._model)
                     else:
                         print("##########################SPARK LOG STARTED")
                         lr_obj = LogisticRegressionPysparkScript(linear_df, dataframe_helper_linear_df, dataframe_context, spark, prediction_narrative,result_setter,metaParserInstance_linear_df)
