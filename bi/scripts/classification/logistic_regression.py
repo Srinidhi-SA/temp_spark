@@ -710,7 +710,12 @@ class LogisticRegressionScript(object):
                 score_data_path = score_data_path[7:]
             trained_model_path = self._dataframe_context.get_model_path()
             trained_model_path += "/" + self._dataframe_context.get_model_for_scoring() + ".pkl"
-            threshold = self._dataframe_context.get_model_threshold()
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
+            if automl_enable:
+                threshold = self._dataframe_context.get_model_threshold()
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]
             score_summary_path = self._dataframe_context.get_score_path() + "/Summary/summary.json"
@@ -734,7 +739,10 @@ class LogisticRegressionScript(object):
             except:
                 y_score = trained_model.predict(pandas_df)
                 y_prob = trained_model.predict_proba(pandas_df)
-            y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            if automl_enable:
+                y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            else:
+                y_score, predict_prob = MLUtils.calculate_predicted_probability_new_analyst(y_prob)
             predict_prob = list([round(x, 2) for x in predict_prob])
             score = {"predicted_class": y_score, "predicted_probability": predict_prob, "class_probability": y_prob}
 

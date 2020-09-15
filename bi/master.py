@@ -82,11 +82,12 @@ def main(configJson):
     print("||############################## Parsing Config file ##############################||")
 
     config = configJson["config"]
-    if "TRAINER_MODE" in config and config["TRAINER_MODE"] == "autoML":###or can get trainer mode  automl
-        if config['FILE_SETTINGS']['inputfile'][0].startswith("https:"):
-            config['ALGORITHM_SETTING'] = GLOBALSETTINGS.algorithm_settings_pandas
-        else:
-            config['ALGORITHM_SETTING'] = GLOBALSETTINGS.algorithm_settings_pyspark
+    if "TRAINER_MODE" in config and config["TRAINER_MODE"] == "autoML" :
+        if "app_type" in config["FILE_SETTINGS"] and config["FILE_SETTINGS"]["app_type"] == "classification":
+            if config['FILE_SETTINGS']['inputfile'][0].startswith("https:"):
+                config['ALGORITHM_SETTING'] = GLOBALSETTINGS.algorithm_settings_pandas
+            else:
+                config['ALGORITHM_SETTING'] = GLOBALSETTINGS.algorithm_settings_pyspark
     jobConfig = configJson["job_config"]
     jobType = jobConfig["job_type"]
     if jobType == "prediction":

@@ -725,7 +725,12 @@ class RFClassificationModelScript(object):
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
             trained_model = joblib.load(trained_model_path)
-            threshold = self._dataframe_context.get_model_threshold()
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
+            if automl_enable:
+                threshold = self._dataframe_context.get_model_threshold()
             # TODO:shape is not being used, remove later
             #shape = (self._data_frame.count(), len(self._data_frame.columns))
             try:
@@ -744,7 +749,10 @@ class RFClassificationModelScript(object):
             except:
                 y_score = trained_model.predict(pandas_df)
                 y_prob = trained_model.predict_proba(pandas_df)
-            y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+                if automl_enable:
+                    y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+                else:
+                    y_score, predict_prob = MLUtils.calculate_predicted_probability_new_analyst(y_prob)
             predict_prob = list([round(x, 2) for x in predict_prob])
             score = {"predicted_class": y_score, "predicted_probability": predict_prob, "class_probability": y_prob}
 

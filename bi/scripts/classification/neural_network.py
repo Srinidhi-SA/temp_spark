@@ -67,10 +67,13 @@ class NeuralNetworkScript(object):
         self._slug = self._model_slug_map["Neural Network (Sklearn)"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
-        if not self._pandas_flag:
-            self._data_frame = self._data_frame.toPandas()
-            self._data_frame.columns = [re.sub("[[]|[]]|[<]","", col) for col in self._data_frame.columns.values]
-            self._dataframe_helper.set_train_test_data(self._data_frame)
+        try:
+            if not self._pandas_flag:
+                self._data_frame = self._data_frame.toPandas()
+                self._data_frame.columns = [re.sub("[[]|[]]|[<]","", col) for col in self._data_frame.columns.values]
+                self._dataframe_helper.set_train_test_data(self._data_frame)
+        except:
+            pass
         self._completionStatus = self._dataframe_context.get_completion_status()
         print(self._completionStatus,"initial completion status")
         self._analysisName = self._slug

@@ -457,7 +457,12 @@ class NBBClassificationModelScript(object):
             trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]
-            threshold = self._dataframe_context.get_model_threshold()
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
+            if automl_enable:
+                threshold = self._dataframe_context.get_model_threshold()
             score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
@@ -477,7 +482,10 @@ class NBBClassificationModelScript(object):
             except:
                 y_score = trained_model.predict(pandas_df)
                 y_prob = trained_model.predict_proba(pandas_df)
-            y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            if automl_enable:
+                y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            else:
+                y_score, predict_prob = MLUtils.calculate_predicted_probability_new_analyst(y_prob)
             predict_prob = list([round(x, 2) for x in predict_prob])
             score = {"predicted_class": y_score, "predicted_probability": predict_prob, "class_probability": y_prob}
 
@@ -805,14 +813,7 @@ class NBGClassificationModelScript(object):
                 self._result_setter.set_hyper_parameter_results(self._slug,None)
                 algoParams = algoSetting.get_params_dict()
                 if automl_enable:
-                    params_grid={'max_depth': [5, 10],
-                                'min_samples_split': [2, 4],
-                                'min_samples_leaf': [1, 2],
-                                'min_impurity_decrease': [0],
-                                'n_estimators': [100],
-                                'criterion': ['gini', 'entropy'],
-                                'bootstrap': [True],
-                                'random_state': [42]}
+                    params_grid={'var_smoothing':[0,1]}
                     hyperParamInitParam={'evaluationMetric': 'precision', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
@@ -1215,7 +1216,12 @@ class NBGClassificationModelScript(object):
             trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]
-            threshold = self._dataframe_context.get_model_threshold()
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
+            if automl_enable:
+                threshold = self._dataframe_context.get_model_threshold()
             score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
@@ -1237,7 +1243,10 @@ class NBGClassificationModelScript(object):
             except:
                 y_score = trained_model.predict(pandas_df)
                 y_prob = trained_model.predict_proba(pandas_df)
-            y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            if automl_enable:
+                y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            else:
+                y_score, predict_prob = MLUtils.calculate_predicted_probability_new_analyst(y_prob)
             predict_prob = list([round(x, 2) for x in predict_prob])
             score = {"predicted_class": y_score, "predicted_probability": predict_prob, "class_probability": y_prob}
 
@@ -2022,7 +2031,12 @@ class NBMClassificationModelScript(object):
             trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]
-            threshold = self._dataframe_context.get_model_threshold()
+            if self._dataframe_context.get_trainerMode() == "autoML":
+                automl_enable=True
+            else:
+                automl_enable=False
+            if automl_enable:
+                threshold = self._dataframe_context.get_model_threshold()
             score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
             if score_summary_path.startswith("file"):
                 score_summary_path = score_summary_path[7:]
@@ -2044,7 +2058,10 @@ class NBMClassificationModelScript(object):
             except:
                 y_score = trained_model.predict(pandas_df)
                 y_prob = trained_model.predict_proba(pandas_df)
-            y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            if automl_enable:
+                y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            else:
+                y_score, predict_prob = MLUtils.calculate_predicted_probability_new_analyst(y_prob)
             predict_prob = list([round(x, 2) for x in predict_prob])
             score = {"predicted_class": y_score, "predicted_probability": predict_prob, "class_probability": y_prob}
 

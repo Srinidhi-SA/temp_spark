@@ -222,6 +222,11 @@ def calculate_predicted_probability_new(trained_model,probability_array,threshol
         # y_score = trained_model.predict(pandas_df)
         y_score, y_prob = calculate_class_predicted_probability(probability_array)
         return y_score,y_prob
+
+def calculate_predicted_probability_new_analyst(probability_array):
+    y_score, y_prob = calculate_class_predicted_probability(probability_array)
+    return y_score,y_prob
+
 def calculate_class_predicted_probability(probability_array):
     y_score, y_prob = [], []
     for record in probability_array:
