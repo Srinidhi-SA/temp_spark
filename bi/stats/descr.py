@@ -19,10 +19,7 @@ class DescriptiveStats(object):
     MAX_NUM_LEVELS = 100
 
     def __init__(self, data_frame, df_helper, df_context,scriptWeight=None, analysisName=None):
-        try:
-            self._data_frame = data_frame.toPandas()
-        except:
-            self._data_frame = data_frame.copy()
+        self._data_frame = data_frame
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
         self._pandas_flag = self._dataframe_context._pandas_flag

@@ -11,6 +11,7 @@ from scipy import stats
 from bi.algorithms.autoML.utils_automl import *
 from pyspark.sql.types import StringType
 from pyspark.sql.functions import *
+import pyspark.sql.functions as F
 class DataPreprocessingAutoML:
 
     def __init__(self, data_frame, target, data_change_dict, numeric_cols, dimension_cols, datetime_cols,problem_type,pandas_flag):
@@ -40,9 +41,7 @@ class DataPreprocessingAutoML:
 
     def drop_constant_unique_cols(self):
         if not self._pandas_flag:
-           new_df  = self.data_frame.select([col for col in self.data_frame.columns if 1<self.data_frame.select(col).distinct().count()<self.data_frame.count()])
-           if self.target not in new_df.columns:
-               new_df = new_df.withColumn(self.target, self.data_frame[self.target])
+           new_df  = self.data_frame.select([col for col in self.data_frame.columns if 1<self.data_frame.select(col).distinct().count()<self.data_frame.count()or (col==self.target)])
            self.data_frame = new_df
         else:
            # self.data_frame  = self.data_frame.loc[:, (self.data_frame .nunique() != 1)]

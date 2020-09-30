@@ -110,19 +110,32 @@ class FeatureSelection():
                 if p_value < 0.05 :
                     linear_list.append(c)
         else:
-            indexer = StringIndexer(inputCol=self.target, outputCol="label")
-            indexed = indexer.fit(self.data_frame).transform(self.data_frame)
-            X_train = indexed.drop('label')
-            num_var = [i[0] for i in X_train.dtypes if ((i[1]=='int') | (i[1]=='double'))]
-            for column_one in num_var:
-                corr = indexed.corr(column_one, 'label')
-                num_of_samples = indexed.select(column_one).count()
-                df = num_of_samples - 2
-                std_error = math.sqrt(old_div((1 - math.pow(corr, 2)), df))
-                t_value = old_div(corr, std_error)
-                p_value = Stats.t_distribution_critical_value(t_value, df=df)
-                if p_value < 0.05 :
-                    linear_list.append(column_one)
+            if self.problem_type !='REGRESSION':
+                indexer = StringIndexer(inputCol=self.target, outputCol="label")
+                indexed = indexer.fit(self.data_frame).transform(self.data_frame)
+                X_train = indexed.drop('label')
+                num_var = [i[0] for i in X_train.dtypes if ((i[1]=='int') | (i[1]=='double'))]
+                for column_one in num_var:
+                    corr = indexed.corr(column_one, 'label')
+                    num_of_samples = indexed.select(column_one).count()
+                    df = num_of_samples - 2
+                    std_error = math.sqrt(old_div((1 - math.pow(corr, 2)), df))
+                    t_value = old_div(corr, std_error)
+                    p_value = Stats.t_distribution_critical_value(t_value, df=df)
+                    if p_value < 0.05 :
+                        linear_list.append(column_one)
+            else:
+                X_train = self.data_frame.drop(self.target)
+                num_var = [i[0] for i in X_train.dtypes if ((i[1]=='int') | (i[1]=='double'))]
+                for column_one in num_var:
+                    corr = self.data_frame.corr(column_one, self.target)
+                    num_of_samples = self.data_frame.select(column_one).count()
+                    df = num_of_samples - 2
+                    std_error = math.sqrt(old_div((1 - math.pow(corr, 2)), df))
+                    t_value = old_div(corr, std_error)
+                    p_value = Stats.t_distribution_critical_value(t_value, df=df)
+                    if p_value < 0.05 :
+                        linear_list.append(column_one)
         self.data_change_dict['SelectedColsLinear'] = linear_list
         linear_list.append(self.target)
         return linear_list

@@ -333,7 +333,7 @@ def main(configJson):
 
         ################################ Model Training ############################
         elif jobType == 'training':
-            dataframe_context.set_ml_environment("sklearn")
+            # dataframe_context.set_ml_environment("sklearn")
             if automl_enable is True:
                 MasterHelper.train_models_automl(spark,linear_df,tree_df,dataframe_context,df_helper_linear_df,df_helper_tree_df,metaParserInstance_linear_df,metaParserInstance_tree_df,one_click_json)
             else:
@@ -345,7 +345,7 @@ def main(configJson):
             if automl_enable is True:
                 MasterHelper.score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linear_df,df_helper_tree_df,metaParserInstance_linear_df,metaParserInstance_tree_df)
             else:
-                dataframe_context.set_ml_environment("sklearn")
+                # dataframe_context.set_ml_environment("sklearn")
                 MasterHelper.score_model(spark,df,dataframe_context,df_helper,metaParserInstance)
 
         ############################################################################

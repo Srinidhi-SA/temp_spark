@@ -1221,13 +1221,13 @@ def create_model_summary_cards(modelSummaryClass):
 
         for quantileSummaryObj in quantileSummaryArr:
             qunatileRow = []
-            if quantileSummaryObj[0] == 0:
+            if int(quantileSummaryObj[0]) == 0:
                 qunatileRow = ["Bottom 25% observations", round(quantileSummaryObj[1]["mean"], 2)]
-            if quantileSummaryObj[0] == 1:
+            if int(quantileSummaryObj[0]) == 1:
                 qunatileRow = ["25% to 50% observations", round(quantileSummaryObj[1]["mean"], 2)]
-            if quantileSummaryObj[0] == 2:
+            if int(quantileSummaryObj[0]) == 2:
                 qunatileRow = ["50% to 75% observations", round(quantileSummaryObj[1]["mean"], 2)]
-            if quantileSummaryObj[0] == 3:
+            if int(quantileSummaryObj[0]) == 3:
                 qunatileRow = ["Top 25% observations", round(quantileSummaryObj[1]["mean"], 2)]
             if len(qunatileRow) > 0:
                 quantileTableData.append(qunatileRow)
@@ -2120,14 +2120,19 @@ def collated_model_summary_card(result_setter, prediction_narrative, appType, ap
 
 def get_mape_stats(df, colname):
     df = df.na.drop(subset=colname)
+    row1 = df.agg({"mape": "max"}).collect()[0]
     splits = GLOBALSETTINGS.MAPEBINS
+    if row1["max(mape)"]>100:
+        splits.append(row1["max(mape)"])
     splitRanges = [(splits[idx],splits[idx+1]) for idx,x in enumerate(splits) if idx < len(splits)-1]
     print(splitRanges)
     st = time.time()
     bucketizer = Bucketizer(inputCol=colname, outputCol="mapeGULSHAN")
     bucketizer.setSplits(splits)
+    if row1["max(mape)"]>100:
+        splits.pop(5)
     df = bucketizer.transform(df)
-    # print df.show()
+    #print(df.show())
     print("mape bucketizer in",time.time()-st)
     quantileGrpDf = df.groupby("mapeGULSHAN").agg(FN.count(colname).alias('count'))
     splitDict = {}
