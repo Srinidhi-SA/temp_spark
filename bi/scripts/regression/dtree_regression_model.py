@@ -164,6 +164,7 @@ class DTREERegressionModelScript(object):
 
             if len(paramGrid) > 1:
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
             else:
                 evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
@@ -186,7 +187,7 @@ class DTREERegressionModelScript(object):
                 #     .build()
                 crossval = CrossValidator(estimator=dtreer,
                               estimatorParamMaps=paramGrid,
-                              evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
+                              evaluator=RegressionEvaluator(metricName=evaluationMetricDict["name"],predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
                 st = time.time()
                 cvModel = crossval.fit(indexed)
@@ -208,8 +209,8 @@ class DTREERegressionModelScript(object):
 
             featureImportance = bestEstimator.featureImportances
             print(featureImportance,type(featureImportance))
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
             if not algoSetting.is_hyperparameter_tuning_enabled():
-                modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
                 modelFilepathArr = model_filepath.split("/")[:-1]
                 modelFilepathArr.append(modelName)
                 bestEstimator.save("/".join(modelFilepathArr))
@@ -455,6 +456,7 @@ class DTREERegressionModelScript(object):
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
             print(quantileSummaryArr)
             runtime = round((time.time() - st_global),2)
+            modelName = resultArray[0]["Model Id"]
 
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("DTREE Regression")
@@ -524,10 +526,7 @@ class DTREERegressionModelScript(object):
                 self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
                 self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
                 self._model_management.set_impurity_decrease_cutoff_for_split(data=str(modelmanagement_['min_impurity_split']))
-                self._model_management.set_no_of_estimators(data=modelmanagement_['n_estimators'])
-                self._model_management.set_bootstrap_sampling(data=modelmanagement_['bootstrap'])
-                self._model_management.set_no_of_jobs(data=str(modelmanagement_['n_jobs']))
-                self._model_management.set_warm_start(data=modelmanagement_['warm_start'])
+
                 self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
                 self._model_management.set_training_status(data="completed")# training status
                 self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
@@ -582,7 +581,7 @@ class DTREERegressionModelScript(object):
                         "evaluationMetricValue":metrics[evaluationMetricDict["name"]],
                         "evaluationMetricName":evaluationMetricDict["name"],
                         "slug":self._model_summary.get_slug(),
-                        "Model Id":resultArray[0]["Model Id"]
+                        "Model Id":modelName
                         }
             modelSummaryJson = {
                 "dropdown":modelDropDownObj,

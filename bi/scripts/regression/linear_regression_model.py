@@ -164,6 +164,7 @@ class LinearRegressionModelScript(object):
 
             if len(paramGrid) > 1:
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
             else:
                 evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
@@ -186,7 +187,7 @@ class LinearRegressionModelScript(object):
                 #    .build()
                 crossval = CrossValidator(estimator=linr,
                               estimatorParamMaps=paramGrid,
-                              evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
+                              evaluator=RegressionEvaluator(metricName=evaluationMetricDict["name"],predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
                 st = time.time()
                 cvModel = crossval.fit(indexed)
@@ -205,8 +206,8 @@ class LinearRegressionModelScript(object):
                 trainingTime = time.time()-st
                 print("time to train",trainingTime)
                 bestEstimator = fit.bestModel
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
             if not algoSetting.is_hyperparameter_tuning_enabled():
-                modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
                 modelFilepathArr = model_filepath.split("/")[:-1]
                 modelFilepathArr.append(modelName)
                 bestEstimator.save("/".join(modelFilepathArr))
@@ -478,7 +479,7 @@ class LinearRegressionModelScript(object):
             quantileArr = list(quantileDf.T.to_dict().items())
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
             runtime = round((time.time() - st_global),2)
-
+            modelName = resultArray[0]["Model Id"]
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("Linear Regression")
             self._model_summary.set_algorithm_display_name("Linear Regression")
@@ -590,7 +591,7 @@ class LinearRegressionModelScript(object):
                         "evaluationMetricValue":metrics[evaluationMetricDict["name"]],
                         "evaluationMetricName":evaluationMetricDict["name"],
                         "slug":self._model_summary.get_slug(),
-                        "Model Id":resultArray[0]["Model Id"]
+                        "Model Id":modelName
                         }
             modelSummaryJson = {
                 "dropdown":modelDropDownObj,

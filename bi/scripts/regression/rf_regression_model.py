@@ -164,6 +164,7 @@ class RFRegressionModelScript(object):
 
             if len(paramGrid) > 1:
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
             else:
                 evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
@@ -187,7 +188,7 @@ class RFRegressionModelScript(object):
                 trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
                 crossval = CrossValidator(estimator=clf,
                               estimatorParamMaps=paramGrid,
-                              evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
+                              evaluator=RegressionEvaluator(metricName=evaluationMetricDict["name"],predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
                 st = time.time()
                 cvModel = crossval.fit(indexed)
@@ -206,10 +207,9 @@ class RFRegressionModelScript(object):
                 trainingTime = time.time()-st
                 print("time to train",trainingTime)
                 bestEstimator = fit.bestModel
-
             featureImportance = bestEstimator.featureImportances
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
             if not algoSetting.is_hyperparameter_tuning_enabled():
-                modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
                 modelFilepathArr = model_filepath.split("/")[:-1]
                 modelFilepathArr.append(modelName)
                 bestEstimator.save("/".join(modelFilepathArr))
@@ -488,7 +488,7 @@ class RFRegressionModelScript(object):
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
             print(quantileSummaryArr)
             runtime = round((time.time() - st_global),2)
-
+            modelName = resultArray[0]["Model Id"]
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("RF Regression")
             self._model_summary.set_algorithm_display_name("Random Forest Regression")
@@ -620,7 +620,7 @@ class RFRegressionModelScript(object):
                         "evaluationMetricValue":metrics[evaluationMetricDict["name"]],
                         "evaluationMetricName":evaluationMetricDict["name"],
                         "slug":self._model_summary.get_slug(),
-                        "Model Id":resultArray[0]["Model Id"]
+                        "Model Id":modelName
                         }
             modelSummaryJson = {
                 "dropdown":modelDropDownObj,

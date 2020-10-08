@@ -603,6 +603,9 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
         df.columns = [re.sub("[[]|[]]|[<]","", col) for col in df.columns.values]
         # df = MLUtils.factorize_columns(df,[x for x in categorical_columns if x != result_column])
         dataframe_helper.set_train_test_data(df)
+        mlEnvironment = 'sklearn'
+    else:
+        mlEnvironment = 'spark'
 
     model_slug = dataframe_context.get_model_path()
     basefoldername = GLOBALSETTINGS.BASEFOLDERNAME_MODELS
@@ -784,7 +787,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["linearregression"]:
                 try:
                     st = time.time()
-                    lin_obj = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    lin_obj = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance,mlEnvironment)
                     lin_obj.Train()
                     print("Linear Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
@@ -825,7 +828,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["gbtregression"]:
                 try:
                     st = time.time()
-                    gbt_obj = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    gbt_obj = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance,mlEnvironment)
                     gbt_obj.Train()
                     print("GBT Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
@@ -835,7 +838,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["dtreeregression"]:
                 try:
                     st = time.time()
-                    dtree_obj = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    dtree_obj = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance,mlEnvironment)
                     dtree_obj.Train()
                     print("DTREE Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
@@ -845,7 +848,7 @@ def train_models(spark,df,dataframe_context,dataframe_helper,metaParserInstance,
             if obj.get_algorithm_slug() == GLOBALSETTINGS.MODEL_SLUG_MAPPING["rfregression"]:
                 try:
                     st = time.time()
-                    rf_obj = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance)
+                    rf_obj = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, prediction_narrative, result_setter, metaParserInstance,mlEnvironment)
                     rf_obj.Train()
                     print("RF Regression Model Done in ", time.time() - st,  " seconds.")
                 except Exception as e:
@@ -1240,7 +1243,10 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
     print("algorithm_name",algorithm_name)
     print("score_file_path",score_file_path)
     print("model_slug",model_slug)
-
+    if pandas_flag:
+        mlEnvironment = "sklearn"
+    else:
+        mlEnvironment = "spark"
     scriptWeightDict = dataframe_context.get_ml_model_prediction_weight()
     scriptStages = {
         "preprocessing":{
@@ -1398,7 +1404,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
         selected_model_for_prediction = [GLOBALSETTINGS.SLUG_MODEL_MAPPING[algorithm_name]]
         print("selected_model_for_prediction", selected_model_for_prediction)
         if "linearregression" in  selected_model_for_prediction:
-            trainedModel = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = LinearRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance,mlEnvironment)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -1407,7 +1413,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "gbtregression" in  selected_model_for_prediction:
-            trainedModel = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = GBTRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance,mlEnvironment)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -1416,7 +1422,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "dtreeregression" in  selected_model_for_prediction:
-            trainedModel = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = DTREERegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance,mlEnvironment)
             try:
                 trainedModel.Predict()
             except Exception as e:
@@ -1425,7 +1431,7 @@ def score_model(spark,df,dataframe_context,dataframe_helper,metaParserInstance):
             print("Scoring Done in ", time.time() - st,  " seconds.")
 
         if "rfregression" in  selected_model_for_prediction:
-            trainedModel = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance)
+            trainedModel = RFRegressionModelScript(df, dataframe_helper, dataframe_context, spark, story_narrative,result_setter,metaParserInstance,mlEnvironment)
             try:
                 trainedModel.Predict()
             except Exception as e:

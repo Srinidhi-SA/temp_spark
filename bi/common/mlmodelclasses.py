@@ -1202,7 +1202,10 @@ class SkleanrKFoldResult(object):
         self.levels = levels
         self.evaluationMetricDict = evaluationMetricDict
         self.kFoldOutput = []
-        self.sampling = sampling
+        if self.appType == "CLASSIFICATION":
+            self.sampling = sampling
+        else:
+            self.sampling = "kfold"
         if self.sampling == "stratifiedKfold":
             self.kfObject = StratifiedKFold(n_splits=numFold, random_state=None, shuffle=False)
             self.kfObjectSplit = self.kfObject.split(self.x_train, self.y_train)

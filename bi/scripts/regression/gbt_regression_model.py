@@ -149,7 +149,6 @@ class GBTRegressionModelScript(object):
                 algoParams = algoSetting.get_params_dict_hyperparameter()
             clfParams = [prm.name for prm in gbtr.params]
             algoParams = {getattr(gbtr, k):v if isinstance(v, list) else [v] for k,v in algoParams.items() if k in clfParams}
-
             paramGrid = ParamGridBuilder()
             for k,v in algoParams.items():
                 if v == [None] * len(v):
@@ -159,6 +158,7 @@ class GBTRegressionModelScript(object):
 
             if len(paramGrid) > 1:
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
                 evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
             else:
                 evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
@@ -181,7 +181,7 @@ class GBTRegressionModelScript(object):
                 #     .build()
                 crossval = CrossValidator(estimator=gbtr,
                               estimatorParamMaps=paramGrid,
-                              evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
+                              evaluator=RegressionEvaluator(metricName=evaluationMetricDict["name"],predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
                 st = time.time()
                 cvModel = crossval.fit(indexed)
@@ -203,8 +203,8 @@ class GBTRegressionModelScript(object):
 
             featureImportance = bestEstimator.featureImportances
             print(featureImportance,type(featureImportance))
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
             if not algoSetting.is_hyperparameter_tuning_enabled():
-                modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
                 modelFilepathArr = model_filepath.split("/")[:-1]
                 modelFilepathArr.append(modelName)
                 bestEstimator.save("/".join(modelFilepathArr))
@@ -446,7 +446,7 @@ class GBTRegressionModelScript(object):
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
             print(quantileSummaryArr)
             runtime = round((time.time() - st_global),2)
-
+            modelName = resultArray[0]["Model Id"]
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("GBT Regression")
             self._model_summary.set_algorithm_display_name("Gradient Boosted Tree Regression")
@@ -499,6 +499,7 @@ class GBTRegressionModelScript(object):
                 self._model_management.set_target_variable(result_column)
                 self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
             else:
+                self._model_management = MLModelSummary()
                 self._model_management.set_learning_rate(data=modelmanagement_['learning_rate'])
                 self._model_management.set_job_type(self._dataframe_context.get_job_name())
                 self._model_management.set_loss_function(data=modelmanagement_['loss'])
@@ -556,7 +557,7 @@ class GBTRegressionModelScript(object):
                         "evaluationMetricValue":metrics[evaluationMetricDict["name"]],
                         "evaluationMetricName":evaluationMetricDict["name"],
                         "slug":self._model_summary.get_slug(),
-                        "Model Id":resultArray[0]["Model Id"]
+                        "Model Id":modelName
                         }
             modelSummaryJson = {
                 "dropdown":modelDropDownObj,
