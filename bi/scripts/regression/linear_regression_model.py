@@ -479,7 +479,8 @@ class LinearRegressionModelScript(object):
             quantileArr = list(quantileDf.T.to_dict().items())
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
             runtime = round((time.time() - st_global),2)
-            modelName = resultArray[0]["Model Id"]
+            if algoSetting.is_hyperparameter_tuning_enabled() or automl_enable:
+                modelName = resultArray[0]["Model Id"]
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("Linear Regression")
             self._model_summary.set_algorithm_display_name("Linear Regression")
