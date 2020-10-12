@@ -20,7 +20,10 @@ try:
 except:
     import pickle
 
-from sklearn.externals import joblib
+try:
+    from sklearn.externals import joblib
+except:
+    import joblib
 from sklearn import metrics
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
@@ -450,9 +453,14 @@ class LogisticRegressionScript(object):
                 runtime = round((time.time() - hyper_st),2)
 
             try:
-                modelPmmlPipeline = PMMLPipeline([
-                    ("pretrained-estimator", objs["trained_model"])
-                ])
+                if automl_enable:
+                    modelPmmlPipeline = PMMLPipeline([
+                        ("pretrained-estimator", objs["trained_model"].bestEstimator)
+                    ])
+                else:
+                    modelPmmlPipeline = PMMLPipeline([
+                        ("pretrained-estimator", objs["trained_model"])
+                    ])
                 modelPmmlPipeline.target_field = result_column
                 modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
                 sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr=True)

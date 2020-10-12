@@ -49,7 +49,10 @@ from sklearn.metrics import r2_score,explained_variance_score
 from math import sqrt
 import pandas as pd
 import numpy as np
-from sklearn.externals import joblib
+try:
+    from sklearn.externals import joblib
+except:
+    import joblib
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 
