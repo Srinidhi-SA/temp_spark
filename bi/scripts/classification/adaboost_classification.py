@@ -250,7 +250,7 @@ class AdaboostScript(object):
                 if automl_enable:
                     params_grid = {
                                     # "base_estimator": [DecisionTreeClassifier(), RandomForestClassifier()],
-                                    "n_estimators": [500,800,1000],
+                                    "n_estimators": [100,200],
                                      #"base_estimator__max_depth": [5,10,12],
                                      # "base_estimator__max_features":["auto","sqrt","log2"],
                                      # "base_estimator__n_estimators":[10,20,30,40,50],
@@ -258,10 +258,10 @@ class AdaboostScript(object):
                                     # "algorithm":["SAMME","SAMME.R"]
                                  }
                     if x_train.shape[0] >= 1000:
-                        params_grid['n_estimators'] = [1000]
+                        params_grid['n_estimators'] = [200]
                         params_grid['learning_rate'] = [0.01]
                     elif x_train.shape[0] < 1000:
-                        params_grid['n_estimators'] = [500]
+                        params_grid['n_estimators'] = [100]
                         params_grid['learning_rate'] = [0.01]
                     hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 5}
                     clfRand = RandomizedSearchCV(clf,params_grid)

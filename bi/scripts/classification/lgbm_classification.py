@@ -138,7 +138,7 @@ class LgbmScript(object):
             st = time.time()
             levels = df[result_column].unique()
             clf = lgb.LGBMClassifier(boosting_type='dart',learning_rate=0.1, n_estimators=50,
-                                     reg_lambda=0.2,verbose = -1,random_state =42,n_jobs=-1, n_iter_no_change=1)
+                                     reg_lambda=0.2,verbose = -1,random_state =42,n_jobs=1, n_iter_no_change=1)
 
 
             labelEncoder = preprocessing.LabelEncoder()
