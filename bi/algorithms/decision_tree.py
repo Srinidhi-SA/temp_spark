@@ -269,6 +269,8 @@ class DecisionTrees(object):
                     levels=levels[0:-1].split(", ")
                 else:
                     levels=levels[0:-1].split(",")
+                if '' in levels:
+                    levels.remove('')
                 levels1 = [key if x==key else self._alias_dict[x] for x in levels for key in  list(self._alias_dict.keys())]
                 #levels = [self._alias_dict[x] for x in levels]
                 DFF.values_not_in(var,levels1,self._measure_columns)
@@ -286,6 +288,8 @@ class DecisionTrees(object):
                     levels=levels[0:-1].split(", ")
                 else:
                     levels=levels[0:-1].split(",")
+                if '' in levels:
+                    levels.remove('')
 
                 levels1 = [x  if x==key else self._alias_dict[x] for x in levels for key in  list(self._alias_dict.keys())]
                 #levels = [self._alias_dict[x] for x in levels]
