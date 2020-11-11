@@ -131,8 +131,8 @@ class RFRegressionModelScript(object):
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
         print("model_path",model_path)
-        pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
-        model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
+        pipeline_filepath = str(model_path)+"/"+str(self._slug)+"/pipeline/"
+        model_filepath = str(model_path)+"/"+str(self._slug)+"/model"
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
         df = self._data_frame
@@ -191,7 +191,7 @@ class RFRegressionModelScript(object):
                 trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
                 crossval = CrossValidator(estimator=clf,
                               estimatorParamMaps=paramGrid,
-                              evaluator=RegressionEvaluator(metricName=evaluationMetricDict["name"],predictionCol="prediction", labelCol=result_column),
+                              evaluator=RegressionEvaluator(metricName="r2",predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
                 st = time.time()
                 cvModel = crossval.fit(indexed)
@@ -716,7 +716,7 @@ class RFRegressionModelScript(object):
 
         if self._mlEnv == "spark":
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
-            trained_model_path = "file://" + self._dataframe_context.get_model_path()
+            trained_model_path = self._dataframe_context.get_model_path()
             trained_model_path += "/model"
             pipeline_path = "/".join(trained_model_path.split("/")[:-1])+"/pipeline"
             print("trained_model_path",trained_model_path)
