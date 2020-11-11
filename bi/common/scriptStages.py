@@ -51,6 +51,7 @@ class messages_list(object):
         "DTREE Regression": ("Initialized The Decision Tree Regression Scripts", "Decision Tree Regression Model Prediction Started", "Decision Tree Regression Model Prediction Finished"),
         "RF Regression": ("Initialized The Random Forest Regression Scripts", "Random Forest Regression Model Prediction Started", "Random Forest Regression Model Prediction Finished"),
         "Neural Network (TensorFlow)": ("Initialized The Neural Network (TensorFlow) Neural Network Scripts", "Neural Network (TensorFlow) Neural Network  Model Prediction Finished"),
+        "dtree Regression": ("Initialized The Decision Tree Regression Scripts", "Decision Tree Regression Model Prediction Started", "Decision Tree Regression Model Prediction Finished"),
         "Neural Network (PyTorch)": ("Initialized The Neural Network (PyTorch)  Scripts", "Neural Network (PyTorch)  Prediction Finished")
         }
 
