@@ -168,17 +168,17 @@ class DTREERegressionModelScript(object):
             if len(paramGrid) > 1:
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
-                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.PYSPARK_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
             else:
                 evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
-                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.PYSPARK_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
 
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                 numFold = int(validationDict["value"])
                 if automl_enable:
                     paramGrid = ParamGridBuilder()\
-                        .addGrid(dtreer.maxDepth,[6]) \
+                        .addGrid(dtreer.maxDepth,[6,10]) \
                         .addGrid(dtreer.minInfoGain,[0.0, 0.05])\
                         .addGrid(dtreer.maxBins, [32])\
                         .build()
@@ -190,7 +190,7 @@ class DTREERegressionModelScript(object):
                 #     .build()
                 crossval = CrossValidator(estimator=dtreer,
                               estimatorParamMaps=paramGrid,
-                              evaluator=RegressionEvaluator(metricName="r2",predictionCol="prediction", labelCol=result_column),
+                              evaluator=RegressionEvaluator(metricName=evaluationMetricDict["displayName"],predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
                 st = time.time()
                 cvModel = crossval.fit(indexed)

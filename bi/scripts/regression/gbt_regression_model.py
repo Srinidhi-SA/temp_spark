@@ -162,17 +162,18 @@ class GBTRegressionModelScript(object):
             if len(paramGrid) > 1:
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
-                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.PYSPARK_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
             else:
                 evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
-                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.PYSPARK_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
 
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                 numFold = int(validationDict["value"])
                 if automl_enable:
                     paramGrid = ParamGridBuilder()\
-                        .addGrid(gbtr.maxDepth,[4,6]) \
+                        .addGrid(gbtr.maxDepth,[5,6]) \
+                        .addGrid(gbtr.maxIter, [10]) \
                         .addGrid(gbtr.minInfoGain,[0.05])\
                         .addGrid(gbtr.maxBins, [32])\
                         .build()
@@ -184,7 +185,7 @@ class GBTRegressionModelScript(object):
                 #     .build()
                 crossval = CrossValidator(estimator=gbtr,
                               estimatorParamMaps=paramGrid,
-                              evaluator=RegressionEvaluator(metricName="r2",predictionCol="prediction", labelCol=result_column),
+                              evaluator=RegressionEvaluator(metricName=evaluationMetricDict["displayName"],predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
                 st = time.time()
                 cvModel = crossval.fit(indexed)
@@ -283,6 +284,7 @@ class GBTRegressionModelScript(object):
             self._model_management.set_max_bins(data=modelmanagement_['maxBins'])
             self._model_management.set_max_depth(data=modelmanagement_['maxDepth'])
             self._model_management.set_min_info_gain(data=modelmanagement_['minInfoGain'])
+            self._model_management.set_maximum_solver(data=modelmanagement_['maxIter'])
             self._model_management.set_algorithm_name("Gradient Boosted Tree Regression")
             self._model_management.set_training_status(data="completed")
             self._model_management.set_job_type(self._dataframe_context.get_job_name())

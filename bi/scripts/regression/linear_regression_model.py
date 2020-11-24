@@ -168,20 +168,20 @@ class LinearRegressionModelScript(object):
             if len(paramGrid) > 1:
                 hyperParamInitParam = algoSetting.get_hyperparameter_params()
                 evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
-                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.PYSPARK_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
             else:
                 evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
-                evaluationMetricDict["displayName"] = GLOBALSETTINGS.SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.PYSPARK_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
 
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                 numFold = int(validationDict["value"])
                 if automl_enable:
                     paramGrid = ParamGridBuilder()\
-                        .addGrid(linr.regParam, [0.01]) \
-                        .addGrid(linr.fitIntercept, [False, True])\
-                        .addGrid(linr.elasticNetParam, [1.0])\
-                        .build()
+                    .addGrid(linr.regParam, [0.1, 0.01]) \
+                    .addGrid(linr.fitIntercept, [False, True])\
+                    .addGrid(linr.elasticNetParam, [0.1,0.01,0.5,1.0])\
+                    .build()
                 trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
                 #paramGrid = ParamGridBuilder()\
                 #    .addGrid(linr.regParam, [0.1, 0.01]) \
@@ -190,7 +190,7 @@ class LinearRegressionModelScript(object):
                 #    .build()
                 crossval = CrossValidator(estimator=linr,
                               estimatorParamMaps=paramGrid,
-                              evaluator=RegressionEvaluator(metricName="r2",predictionCol="prediction", labelCol=result_column),
+                              evaluator=RegressionEvaluator(metricName=evaluationMetricDict["displayName"],predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
                 st = time.time()
                 cvModel = crossval.fit(indexed)
