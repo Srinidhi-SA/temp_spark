@@ -20,7 +20,17 @@ SKLEARN_EVAL_METRIC_NAME_DISPLAY_MAP = {
     "recall":"Recall",
     "roc_auc":"ROC-AUC"
 }
-
+PYSPARK_EVAL_METRIC_NAME_DISPLAY_MAP = {
+    "r2":"r2",
+    "RMSE":"rmse",
+    "neg_mean_absolute_error":"mae",
+    "neg_mean_squared_error":"mse",
+    "neg_mean_squared_log_error":"MSE(log)",
+    "accuracy":"Accuracy",
+    "precision":"Precision",
+    "recall":"Recall",
+    "roc_auc":"ROC-AUC"
+}
 MAX_NUMBER_OF_MODELS_IN_SUMMARY = 10
 REG_SCORE_HIGHLIGHT = False
 REG_SCORE_ANOVA_KEY_FACTORS = False
