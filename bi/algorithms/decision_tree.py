@@ -24,6 +24,8 @@ from bi.settings import setting as GLOBALSETTINGS
 from sklearn.datasets import *
 from sklearn.tree import DecisionTreeClassifier,_tree
 from sklearn.tree import export_graphviz
+from sklearn.preprocessing import LabelEncoder
+import pandas as pd
 from pyspark.sql.functions import col, countDistinct
 import pydotplus
 from io import BytesIO
@@ -40,7 +42,7 @@ class DecisionTrees(object):
     # @accepts(object, DataFrame)
     def __init__(self, data_frame, df_helper, df_context, spark, meta_parser,scriptWeight=None, analysisName=None):
         self._spark = spark
-        self._maxDepth = 3
+        self._maxDepth = 5
         self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -59,7 +61,8 @@ class DecisionTrees(object):
             self._dimension_columns = list(set(self._dimension_columns) - {self._uid_col})
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
-        self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns,pandas_flag=self._pandas_flag)
+        # self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns,pandas_flag=self._pandas_flag)
+        self._data_frame = data_frame
         try:
             self._data_frame1 = self._data_frame.copy()
         except:
@@ -160,14 +163,15 @@ class DecisionTrees(object):
                 bl = ' '.join(lines.pop(0).split()[1:]).replace(':', '').replace(')', '')
                 feature_mapping = bl.split()[0]
                 if "<=" or "<" in bl:
-                    sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(bl.split()[-1]))]
-                    sub_mappings_string = '(' +  ', '.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
-                    bl = "%s in %s" % (feature_mapping, sub_mappings_string)
-
+                    # sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(bl.split()[-1]))]
+                    # sub_mappings_string = '(' +  ', '.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                    # bl = "%s in %s" % (feature_mapping, sub_mappings_string)
+                    bl = bl
                 elif ">=" or ">" in bl:
-                    sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x >= math.ceil(float(bl.split()[-1]))]
-                    sub_mappings_string = '(' +  ', '.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
-                    bl = "%s in %s" % (feature_mapping, sub_mappings_string)
+                    # sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x >= math.ceil(float(bl.split()[-1]))]
+                    # sub_mappings_string = '(' +  ', '.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                    # bl = "%s in %s" % (feature_mapping, sub_mappings_string)
+                    bl = bl
                 if bl not in check_list:
                     check_list.append(bl)
 
@@ -181,9 +185,10 @@ class DecisionTrees(object):
                     feature_mapping = be.split()[0]
 
                     if ">" or ">=" in be:
-                        sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(be.split()[-1]))]
-                        sub_mappings_string = '(' + ', '.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
-                        be = "%s not in %s" % (feature_mapping, sub_mappings_string)
+                        # sub_mappings = [x for x in list(self._mapping_dict[feature_mapping].keys()) if x <= math.floor(float(be.split()[-1]))]
+                        # sub_mappings_string = '(' + ', '.join(list(self._mapping_dict[feature_mapping][int(x)] for x in sub_mappings)) + ')'
+                        # be = "%s not in %s" % (feature_mapping, sub_mappings_string)
+                        be = be
                     if be not in check_list:
                         check_list.append(be)
                     else:
@@ -193,8 +198,8 @@ class DecisionTrees(object):
             elif not lines[0].startswith(('if','else')):
                 block2 = lines.pop(0)
                 if "return" in block2:
-                    outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(' ')[1].strip()))]
-                    block2 = "Predict: %s" % (outcome)
+                    # outcome = self._mapping_dict[df.columns[0]][int(float(block2.split(' ')[1].strip()))]
+                    block2 = "Predict: %s" % (str(int(float(block2.split(' ')[1].strip()))))
                 block.append({'name':block2})
             else:
                 break
@@ -229,7 +234,7 @@ class DecisionTrees(object):
     def extract_rules(self, rule_list, target):
         if target not in self._important_vars:
             self._important_vars[target] = []
-        DFF = DataFrameFilterer(self._data_frame1, self._pandas_flag)
+        DFF = DataFrameFilterer(self._data_frame, self._pandas_flag)
         colname = self._target_dimension
         success = 0
         total = 0
@@ -247,8 +252,8 @@ class DecisionTrees(object):
         for rule in rule_list:
 
             if ' <= ' in rule:
-                var,limit = re.split(' <= ',rule)
-                DFF.values_below(var,float(limit))
+                var, limit = re.split(' <= ', rule)
+                DFF.values_below(var, float(limit))
                 data_dict={}
                 for rows in DFF.get_count_result(colname):
                     if rows is not None:
@@ -256,7 +261,7 @@ class DecisionTrees(object):
                 dict_tree.append(data_dict)
             elif ' > ' in rule:
                 var,limit = re.split(' > ',rule)
-                DFF.values_above(var.lstrip('0123456789. '),float(limit))
+                DFF.values_above(var.lstrip('0123456789. '), float(limit))
                 data_dict={}
                 for rows in DFF.get_count_result(colname):
                     if rows is not None:
@@ -301,7 +306,7 @@ class DecisionTrees(object):
                 dict_tree.append(data_dict)
             important_vars.append(var)
         for rows in DFF.get_aggregated_result(colname,target):
-            if(rows[0]==target):
+            if(rows[0]==int(target)):
                 success = rows[1]
             total = total + rows[1]
             self._total_list.append(total)
@@ -320,7 +325,7 @@ class DecisionTrees(object):
             return success,total,dict_tree
 
 
-    def node_name_extractor(self,tree_dict):
+    def node_name_extractor(self, tree_dict):
         new_list=[]
         if "children" in list(tree_dict.keys()) and len(tree_dict['children'])>0:
             if tree_dict['name'] not in new_list:
@@ -392,15 +397,16 @@ class DecisionTrees(object):
             target = rules['name'][9:]
             try:
                 num_success,num_total,dict_tree = self.extract_rules(rules_list,target)
-            except:
+            except Exception as e:
                 print("ONE RULE EXCEPTION")
+                print(e)
                 return(None)
             new_rules['fruits']=dict_tree
             vals=list(dict_tree[-1].values())
             extract_level = new_rules['name']
             rule_target_level =  extract_level.split(':')[-1][1:]
             new_level_dict = dict_tree[-1]
-            new_rules['probability']=round(old_div(new_level_dict[rule_target_level]*100.0,sum(vals)),2)
+            new_rules['probability']=round(old_div(new_level_dict[int(rule_target_level)]*100.0,sum(vals)),2)
             print(new_rules['probability'])
             if 'Predict:' in rules['name'] and num_success>0:
                 return new_rules
@@ -414,7 +420,7 @@ class DecisionTrees(object):
             else:
                 yield el
 
-    def wrap_tree(self, tree,tree_dict):
+    def wrap_tree(self, tree, tree_dict):
         new_tree = {}
         if "children" in list(tree.keys()) and len(tree['children'])>0:
             for item in list(tree_dict.keys()):
@@ -476,14 +482,20 @@ class DecisionTrees(object):
         # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
         all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
         all_measures = self._measure_columns
+        self._data_frame=self._data_frame[all_dimensions+all_measures]
         cat_feature_info = []
         columns_without_dimension = [x for x in all_dimensions if x != dimension]
         mapping_dict = {}
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
         decision_tree_result.set_freq_distribution(self._metaParser.get_unique_level_dict(self._target_dimension), self._important_vars)
+        try:
+            all_dimensions.remove(dimension)
+        except:
+            pass
+        self._data_frame=pd.get_dummies(self._data_frame,columns=all_dimensions)
         all_dimensions.append(dimension)#this has been done for scoring error
-        self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions, self._pandas_flag)
+        self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, [dimension], self._pandas_flag)
         if self._pandas_flag:
             print(self._data_frame.head(1))
         else:
@@ -500,26 +512,27 @@ class DecisionTrees(object):
                 temp[k1] = v1.replace(",","")
             mapping_dict[k] = temp
         self._mapping_dict = mapping_dict
+        decision_tree_result.mappingdict=mapping_dict[dimension]
 
-        for c in columns_without_dimension:
-            if self._pandas_flag:
-                cat_feature_info.append(len(self._data_frame[c].unique()))
-            else:
-                cat_feature_info.append(self._data_frame.select(c).distinct().count())
-        for c in all_measures:
-            cat_feature_info.append(5)
-        columns_without_dimension = columns_without_dimension+all_measures
-        all_measures = []
-        if len(cat_feature_info)>0:
-            max_length = max(cat_feature_info)
-        else:
-            max_length=32
+        # for c in columns_without_dimension:
+        #     if self._pandas_flag:
+        #         cat_feature_info.append(len(self._data_frame[c].unique()))
+        #     else:
+        #         cat_feature_info.append(self._data_frame.select(c).distinct().count())
+        # for c in all_measures:
+        #     cat_feature_info.append(5)
+        # columns_without_dimension = columns_without_dimension+all_measures
+        # all_measures = []
+        # if len(cat_feature_info)>0:
+        #     max_length = max(cat_feature_info)
+        # else:
+        max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
         if self._pandas_flag:
             dimension_classes = len(self._data_frame[dimension].unique())
         else:
             dimension_classes = self._data_frame.select(dimension).distinct().count()
-        self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
+        #self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
         print("="*200)
         # print self._data_frame.rdd.first()
         print("numClasses",dimension_classes)
@@ -529,6 +542,8 @@ class DecisionTrees(object):
         if self._pandas_flag:
             x = self._data_frame.drop(dimension,axis=1)
             y = self._data_frame[dimension]
+            #tle = LabelEncoder()
+            #y = tle.fit_transform(y)
             for i in x.columns:
                 x[i] = x[i].fillna(x[i].mode()[0])
             model = DecisionTreeClassifier(criterion='gini', max_depth=self._maxDepth,random_state=42)

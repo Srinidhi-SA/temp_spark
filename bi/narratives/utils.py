@@ -1086,6 +1086,7 @@ def restructure_donut_chart_data(dataDict,nLevels=None):
     return dict(finalData)
 
 def generate_rules(colname,target,rules, total, success, success_percent,analysisType,path_dict,binFlag=False):
+    target = str(target)
     ru=re.split(',(?![^(]*\))',rules)
     rules_to_remove=[]
     paths_to_collapse=[]

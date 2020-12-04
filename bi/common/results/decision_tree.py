@@ -15,10 +15,10 @@ class DecisionTreeResult(object):
 
     def set_params(self, tree_result, rules, total, success, success_percent,path_dict):
         self.tree = tree_result
-        self._table = rules
-        self._total = total
-        self._success = success
-        self._success_percent = success_percent
+        self._table = {self.mappingdict[int(i)]:rules[i] for i in list(rules.keys())}
+        self._total = {self.mappingdict[int(i)]:total[i] for i in list(total.keys())}
+        self._success = {self.mappingdict[int(i)]:success[i] for i in list(success.keys())}
+        self._success_percent = {self.mappingdict[int(i)]:success_percent[i] for i in list(success_percent.keys())}
         self._path_dict=path_dict
 
     def set_target_map(self, target_map, target_agg, important_vars):
@@ -26,14 +26,14 @@ class DecisionTreeResult(object):
         self._target_agg = target_agg
         print("set_target_map")
         print(target_agg)
-        self._important_vars = important_vars
+        self._important_vars = {self.mappingdict[int(i)]:important_vars[i] for i in list(important_vars.keys())}
 
     def set_freq_distribution(self, target_agg, important_vars):
         self._target_map = None
         print("set_freq_distribution")
         self._target_agg = target_agg
         print(target_agg)
-        self._important_vars = important_vars
+        self._important_vars = {self.mappingdict[int(i)]:important_vars[i] for i in list(important_vars.keys())}
 
     def get_significant_vars(self):
         return self._important_vars
