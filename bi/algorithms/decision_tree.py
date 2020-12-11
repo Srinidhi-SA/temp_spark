@@ -61,8 +61,10 @@ class DecisionTrees(object):
             self._dimension_columns = list(set(self._dimension_columns) - {self._uid_col})
         if len(self._date_columns) >0 :
             self._dimension_columns = list(set(self._dimension_columns)-set(self._date_columns))
-        # self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns,pandas_flag=self._pandas_flag)
-        self._data_frame = data_frame
+        if not self._pandas_flag:
+            self._data_frame = MLUtils.bucket_all_measures(data_frame,self._measure_columns,self._dimension_columns,pandas_flag=self._pandas_flag)
+        else:
+            self._data_frame = data_frame
         try:
             self._data_frame1 = self._data_frame.copy()
         except:
@@ -234,7 +236,10 @@ class DecisionTrees(object):
     def extract_rules(self, rule_list, target):
         if target not in self._important_vars:
             self._important_vars[target] = []
-        DFF = DataFrameFilterer(self._data_frame, self._pandas_flag)
+        if self._pandas_flag:
+            DFF = DataFrameFilterer(self._data_frame, self._pandas_flag)
+        else:
+            DFF = DataFrameFilterer(self._data_frame1, self._pandas_flag)
         colname = self._target_dimension
         success = 0
         total = 0
@@ -269,7 +274,7 @@ class DecisionTrees(object):
                 dict_tree.append(data_dict)
             elif ' not in ' in rule:
                 var,levels = rule.split(' not in (')
-                levels = levels.lstrip('0123456789. ')
+                levels = levels.lstrip('. ')
                 if self._pandas_flag:
                     levels=levels[0:-1].split(", ")
                 else:
@@ -288,7 +293,7 @@ class DecisionTrees(object):
 
             elif ' in ' in rule:
                 var,levels = rule.split(' in (')
-                levels = levels.lstrip('0123456789. ')
+                levels = levels.lstrip('. ')
                 if self._pandas_flag:
                     levels=levels[0:-1].split(", ")
                 else:
@@ -306,10 +311,16 @@ class DecisionTrees(object):
                 dict_tree.append(data_dict)
             important_vars.append(var)
         for rows in DFF.get_aggregated_result(colname,target):
-            if(rows[0]==int(target)):
-                success = rows[1]
-            total = total + rows[1]
-            self._total_list.append(total)
+            if self._pandas_flag:
+                if(rows[0]==int(target)):
+                    success = rows[1]
+                total = total + rows[1]
+                self._total_list.append(total)
+            else:
+                if(rows[0]==target):
+                    success = rows[1]
+                total = total + rows[1]
+                self._total_list.append(total)
 
         self._important_vars[target] = list(set(self._important_vars[target] + important_vars))
         if (total > 0):
@@ -406,7 +417,10 @@ class DecisionTrees(object):
             extract_level = new_rules['name']
             rule_target_level =  extract_level.split(':')[-1][1:]
             new_level_dict = dict_tree[-1]
-            new_rules['probability']=round(old_div(new_level_dict[int(rule_target_level)]*100.0,sum(vals)),2)
+            if self._pandas_flag:
+                new_rules['probability']=round(old_div(new_level_dict[int(rule_target_level)]*100.0,sum(vals)),2)
+            else:
+                new_rules['probability']=round(old_div(new_level_dict[rule_target_level]*100.0,sum(vals)),2)
             print(new_rules['probability'])
             if 'Predict:' in rules['name'] and num_success>0:
                 return new_rules
@@ -482,20 +496,33 @@ class DecisionTrees(object):
         # all_dimensions = [dim for dim in self._dimension_columns if self._dataframe_helper.get_num_unique_values(dim) <= max_num_levels]
         all_dimensions = [dim for dim in self._dimension_columns if self._metaParser.get_num_unique_values(dim) <= max_num_levels]
         all_measures = self._measure_columns
-        self._data_frame=self._data_frame[all_dimensions+all_measures]
+        if self._pandas_flag:
+            self._data_frame=self._data_frame[all_dimensions+all_measures]
         cat_feature_info = []
         columns_without_dimension = [x for x in all_dimensions if x != dimension]
         mapping_dict = {}
         masterMappingDict = {}
         decision_tree_result = DecisionTreeResult()
         decision_tree_result.set_freq_distribution(self._metaParser.get_unique_level_dict(self._target_dimension), self._important_vars)
-        try:
-            all_dimensions.remove(dimension)
-        except:
-            pass
-        self._data_frame=pd.get_dummies(self._data_frame,columns=all_dimensions)
+        if self._pandas_flag:
+            try:
+                all_dimensions.remove(dimension)
+            except:
+                pass
+            actual_cols = list(self._data_frame.columns)
+            print(actual_cols)
+            self._data_frame=pd.get_dummies(self._data_frame,columns=all_dimensions)
+            after_dummy_cols = list(self._data_frame.columns)
+
+            def Diff(li1, li2):
+                return (list(list(set(li1)-set(li2)) + list(set(li2)-set(li1))))
+            decision_tree_result.dummy_cols=[Diff(after_dummy_cols,Diff(actual_cols,all_dimensions)),all_dimensions]
+
         all_dimensions.append(dimension)#this has been done for scoring error
-        self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, [dimension], self._pandas_flag)
+        if self._pandas_flag:
+            self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, [dimension], self._pandas_flag)
+        else:
+            self._data_frame, mapping_dict = MLUtils.add_string_index(self._data_frame, all_dimensions, self._pandas_flag)
         if self._pandas_flag:
             print(self._data_frame.head(1))
         else:
@@ -512,27 +539,31 @@ class DecisionTrees(object):
                 temp[k1] = v1.replace(",","")
             mapping_dict[k] = temp
         self._mapping_dict = mapping_dict
-        decision_tree_result.mappingdict=mapping_dict[dimension]
+        if not self._pandas_flag:
 
-        # for c in columns_without_dimension:
-        #     if self._pandas_flag:
-        #         cat_feature_info.append(len(self._data_frame[c].unique()))
-        #     else:
-        #         cat_feature_info.append(self._data_frame.select(c).distinct().count())
-        # for c in all_measures:
-        #     cat_feature_info.append(5)
-        # columns_without_dimension = columns_without_dimension+all_measures
-        # all_measures = []
-        # if len(cat_feature_info)>0:
-        #     max_length = max(cat_feature_info)
-        # else:
-        max_length=32
+            for c in columns_without_dimension:
+                if self._pandas_flag:
+                    cat_feature_info.append(len(self._data_frame[c].unique()))
+                else:
+                    cat_feature_info.append(self._data_frame.select(c).distinct().count())
+            for c in all_measures:
+                cat_feature_info.append(5)
+            columns_without_dimension = columns_without_dimension+all_measures
+            all_measures = []
+            if len(cat_feature_info)>0:
+                max_length = max(cat_feature_info)
+            else:
+                max_length=32
+        else:
+            decision_tree_result.mappingdict=mapping_dict[dimension]
+            max_length=32
         cat_feature_info = dict(enumerate(cat_feature_info))
         if self._pandas_flag:
             dimension_classes = len(self._data_frame[dimension].unique())
         else:
             dimension_classes = self._data_frame.select(dimension).distinct().count()
-        #self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
+        if not self._pandas_flag:
+            self._data_frame = self._data_frame[[dimension] + columns_without_dimension + all_measures]
         print("="*200)
         # print self._data_frame.rdd.first()
         print("numClasses",dimension_classes)
