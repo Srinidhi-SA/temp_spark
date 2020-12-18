@@ -4,7 +4,15 @@ from builtins import zip
 from builtins import object
 import json
 import math
-
+from bi.algorithms.autoML.data_validation import DataValidation
+from bi.algorithms.autoML.data_preprocessing_auto_ml import DataPreprocessingAutoML
+from bi.algorithms.autoML.feature_engineering_auto_ml import FeatureEngineeringAutoML
+from bi.algorithms.autoML.feature_selection import FeatureSelection
+from sklearn.ensemble import RandomForestClassifier
+from pandas.api.types import is_string_dtype
+from pandas.api.types import is_numeric_dtype
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.preprocessing import LabelEncoder
 from bi.common import ChartJson
 from bi.common import NormalCard, NarrativesTree, HtmlData, C3ChartData
 from bi.common import utils as CommonUtils
@@ -66,7 +74,8 @@ class ChiSquareNarratives(object):
                     else: temp.append(row_value_)
                 pandas_df[bin_col] = temp
         if self._pandas_flag:
-            self._data_frame = pandas_df
+            pass
+            # self._data_frame = pandas_df
         else:
             fields = [StructField(field_name, StringType(), True) for field_name in pandas_df.columns]
             schema = StructType(fields)
@@ -115,12 +124,77 @@ class ChiSquareNarratives(object):
                 },
             }
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"initialization","info",display=False,weightKey="narratives")
-
+        self.new_effect_size,self.signi_dict = self.df_clean(target_dimension)
         self._generate_narratives()
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"summarygeneration","info",display=False,weightKey="narratives")
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",display=False,weightKey="narratives")
+    def df_clean(self,target_dimension,dummy_Cols = True,label_encoding= False):
+        if is_numeric_dtype(self._data_frame[target_dimension[0]]):
+            self.app_type = 'regression'
+        elif is_string_dtype(self._data_frame[target_dimension[0]]):
+            self.app_type = 'classification'
+        try:
+            DataValidation_obj = DataValidation(self._data_frame, target_dimension[0], self.app_type, self._pandas_flag)
+            DataValidation_obj.data_validation_run()
+            if not DataValidation_obj.data_change_dict["target_fitness_check"]:
+                raise ValueError("Target not suitable for "+ str(self.app_type) + " analysis")
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(self.LOGGER, "datavalidation", e)
+            CommonUtils.save_error_messages(self.errorURL, self.app_type, e, ignore=self.ignoreMsg)
+            if str(e) == "Target not suitable for "+ str(self.app_type) + " analysis":
+                raise ValueError("Target not suitable for "+ str(self.app_type) + " analysis")
+        try:
+            DataPreprocessingAutoML_obj = DataPreprocessingAutoML(DataValidation_obj.data_frame, DataValidation_obj.target, DataValidation_obj.data_change_dict, DataValidation_obj.numeric_cols, DataValidation_obj.dimension_cols, DataValidation_obj.datetime_cols,DataValidation_obj.problem_type,self._pandas_flag)
+            DataPreprocessingAutoML_obj.data_preprocessing_run()
+        except Exception as e:
+            CommonUtils.print_errors_and_store_traceback(self.LOGGER, "dataPreprocessing", e)
+            CommonUtils.save_error_messages(self.errorURL, self.app_type, e, ignore=self.ignoreMsg)
+        preprocess_df = DataPreprocessingAutoML_obj.data_frame
+        FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(DataPreprocessingAutoML_obj.data_frame, DataPreprocessingAutoML_obj.target, DataPreprocessingAutoML_obj.data_change_dict, DataPreprocessingAutoML_obj.numeric_cols, DataPreprocessingAutoML_obj.dimension_cols, DataPreprocessingAutoML_obj.datetime_cols, DataPreprocessingAutoML_obj.problem_type,self._pandas_flag)
+        if FeatureEngineeringAutoML_obj.datetime_cols!=0:
+            FeatureEngineeringAutoML_obj.date_column_split(FeatureEngineeringAutoML_obj.datetime_cols)
+        if dummy_Cols:
+            FeatureEngineeringAutoML_obj.sk_one_hot_encoding(FeatureEngineeringAutoML_obj.dimension_cols)
+            clean_df = FeatureEngineeringAutoML_obj.data_frame
+        if label_encoding:
+            for column_name in FeatureEngineeringAutoML_obj.dimension_cols:
+                preprocess_df[column_name + '_ed_label_encoded'] = LabelEncoder().fit_transform(preprocess_df[column_name])
+                preprocess_df = preprocess_df.drop(column_name,1)
+            clean_df = preprocess_df
+        X = clean_df.drop(target_dimension[0],1)
+        Y = clean_df[target_dimension[0]]
+        dtree = DecisionTreeClassifier(criterion='gini', max_depth=5,random_state=42)
+        dtree.fit(X, Y)
+        feat_imp_dict = {}
+        for feature, importance in zip(list(X.columns), dtree.feature_importances_):
+            feat_imp_dict[feature] = round(importance,2)
+        feat_imp_ori_dict={}
+        actual_cols = list(self._data_frame.columns)
+        actual_cols.remove(target_dimension[0])
+        for i in actual_cols:
+            value1 = []
+            for j in feat_imp_dict:
+                temp = j.split(i,-1)
+                if len(temp)==2:
+                    value1.append(feat_imp_dict[j])
+            feat_imp_ori_dict.update({i:sum(value1)})
+        sort_dict = dict(sorted(feat_imp_ori_dict.items(), key=lambda x: x[1],reverse = True))
+        cat_var = [key for key in dict(self._data_frame.dtypes) if dict(self._data_frame.dtypes)[key] in ['object']]
+        cat_var.remove(target_dimension[0])
+        si_var_dict = {}
+        for i,j in sort_dict.items():
+            if i in cat_var:
+                si_var_dict[i]=j
+        threshold = 0
+        si_var_thresh = {}
+        for i,j in si_var_dict.items():
+            threshold = threshold + j
+            if threshold < 0.8:
+                si_var_thresh[i] = j
+        return feat_imp_dict,si_var_thresh
+
 
     def _generate_narratives(self):
         """
@@ -131,11 +205,9 @@ class ChiSquareNarratives(object):
             analysed_variables = list(target_chisquare_result.keys())  ## List of all analyzed var.
             # List of significant var out of analyzed var.
             # significant_variables = [dim for dim in list(target_chisquare_result.keys()) if target_chisquare_result[dim].get_pvalue()<=0.05]
-            significant_variables = [dim for dim in list(target_chisquare_result.keys())]
-
-            effect_sizes = [target_chisquare_result[dim].get_effect_size() for dim in significant_variables]
-
-            effect_size_dict = dict(list(zip(significant_variables,effect_sizes)))
+            effect_size_dict = self.new_effect_size
+            significant_variables = list(self.signi_dict.keys())
+            effect_sizes = list(self.signi_dict.values())
             significant_variables = [y for (x,y) in sorted(zip(effect_sizes,significant_variables) ,reverse=True) if round(float(x),2)>0]
             #insignificant_variables = [i for i in self._df_chisquare_result[target_dimension] if i['pv']>0.05]
 
@@ -161,7 +233,7 @@ class ChiSquareNarratives(object):
             chart = {'header':'Strength of association between '+target_dimension+' and other dimensions'}
             chart['data'] = effect_size_dict
             chart['label_text']={'x':'Dimensions',
-                                'y':'Effect Size (Cramers-V)'}
+                                'y':'Feature Importance'}
 
             chart_data = []
             chartDataValues = []
@@ -175,9 +247,9 @@ class ChiSquareNarratives(object):
             chart_json.set_data(chart_data)
             chart_json.set_chart_type("bar")
             # chart_json.set_label_text({'x':'Dimensions','y':'Effect Size (Cramers-V)'})
-            chart_json.set_label_text({'x':'  ','y':'Effect Size (Cramers-V)'})
+            chart_json.set_label_text({'x':'  ','y':'Feature Importance'})
             chart_json.set_axis_rotation(True)
-            chart_json.set_axes({"x":"Attribute","y":"Effect_Size"})
+            chart_json.set_axes({"x":"Attribute","y":"Feature Importance"})
             chart_json.set_yaxis_number_format(".2f")
             # chart_json.set_yaxis_number_format(NarrativesUtils.select_y_axis_format(chartDataValues))
             self.narratives['main_card']['chart']=chart
