@@ -41,6 +41,7 @@ class DecisionTreeNarrative(object):
         self._pandas_flag = df_context._pandas_flag
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._decision_tree_rules=decision_tree_rules
+        self._maxdepth = decision_tree_rules._maxDepth
         self._decision_rules_dict = decision_tree_rules.get_decision_rules()
         self._decision_path_dict = decision_tree_rules.get_path_dict()
         self._decision_tree_json = CommonUtils.as_dict(decision_tree_rules)
@@ -99,7 +100,7 @@ class DecisionTreeNarrative(object):
         self._decisionTreeNode.set_name("Prediction")
         self._generate_narratives()
         # self._story_narrative.add_a_node(self._decisionTreeNode)
-        self._result_setter.set_decision_tree_node(self._decisionTreeNode,self._decision_tree_raw)
+        self._result_setter.set_decision_tree_node_classifier(self._decisionTreeNode,self._decision_tree_raw,self._maxdepth)
         self._result_setter.set_score_dtree_cards(json.loads(CommonUtils.convert_python_object_to_json(self._decisionTreeNode.get_all_cards())),self._decision_tree_raw)
 
         self._completionStatus = self._dataframe_context.get_completion_status()

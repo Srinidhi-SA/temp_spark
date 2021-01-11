@@ -40,9 +40,9 @@ Decision Tree
 class DecisionTrees(object):
 
     # @accepts(object, DataFrame)
-    def __init__(self, data_frame, df_helper, df_context, spark, meta_parser,scriptWeight=None, analysisName=None):
+    def __init__(self, data_frame, df_helper, df_context, spark, meta_parser, max_depth=5, scriptWeight=None, analysisName=None):
         self._spark = spark
-        self._maxDepth = 5
+        self._maxDepth = max_depth
         self._metaParser = meta_parser
         self._dataframe_helper = df_helper
         self._dataframe_context = df_context
@@ -568,6 +568,7 @@ class DecisionTrees(object):
         # print self._data_frame.rdd.first()
         print("numClasses",dimension_classes)
         print("maxDepth",self._maxDepth)
+        decision_tree_result._maxDepth = self._maxDepth
         print("maxBins",max_length)
         print("="*200)
         if self._pandas_flag:

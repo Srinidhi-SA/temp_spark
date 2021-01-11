@@ -20,7 +20,10 @@ from bi.narratives import utils as NarrativesUtils
 from bi.settings import setting as GLOBALSETTINGS
 from .chisquare import ChiSquareAnalysis
 from bi.transformations import Binner
-
+from pyspark.ml.classification import DecisionTreeClassifier as pysparkDecisionTreeClassifier
+from pyspark.ml.feature import StringIndexer, OneHotEncoderEstimator, VectorAssembler
+from pyspark.ml import Pipeline
+import pandas as pd
 from pyspark.sql import SQLContext
 from pyspark.sql.types import *
 
@@ -131,10 +134,16 @@ class ChiSquareNarratives(object):
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",display=False,weightKey="narratives")
     def df_clean(self,target_dimension,dummy_Cols = True,label_encoding= False):
-        if is_numeric_dtype(self._data_frame[target_dimension[0]]):
-            self.app_type = 'regression'
-        elif is_string_dtype(self._data_frame[target_dimension[0]]):
-            self.app_type = 'classification'
+        if self._pandas_flag:
+            if is_numeric_dtype(self._data_frame[target_dimension[0]]):
+                self.app_type = 'regression'
+            elif is_string_dtype(self._data_frame[target_dimension[0]]):
+                self.app_type = 'classification'
+        else:
+            if self._data_frame.select(target_dimension[0]).dtypes[0][1] == 'string':
+                self.app_type = 'classification'
+            elif self._data_frame.select(target_dimension[0]).dtypes[0][1] in ['int','double']:
+                self.app_type = 'regression'
         try:
             DataValidation_obj = DataValidation(self._data_frame, target_dimension[0], self.app_type, self._pandas_flag)
             DataValidation_obj.data_validation_run()
@@ -156,20 +165,53 @@ class ChiSquareNarratives(object):
         if FeatureEngineeringAutoML_obj.datetime_cols!=0:
             FeatureEngineeringAutoML_obj.date_column_split(FeatureEngineeringAutoML_obj.datetime_cols)
         if dummy_Cols:
-            FeatureEngineeringAutoML_obj.sk_one_hot_encoding(FeatureEngineeringAutoML_obj.dimension_cols)
-            clean_df = FeatureEngineeringAutoML_obj.data_frame
+            if self._pandas_flag:
+                FeatureEngineeringAutoML_obj.sk_one_hot_encoding(FeatureEngineeringAutoML_obj.dimension_cols)
+                clean_df = FeatureEngineeringAutoML_obj.data_frame
+            else:
+                FeatureEngineeringAutoML_obj.pyspark_one_hot_encoding(FeatureEngineeringAutoML_obj.dimension_cols)
+                clean_df = FeatureEngineeringAutoML_obj.data_frame
         if label_encoding:
-            for column_name in FeatureEngineeringAutoML_obj.dimension_cols:
-                preprocess_df[column_name + '_ed_label_encoded'] = LabelEncoder().fit_transform(preprocess_df[column_name])
-                preprocess_df = preprocess_df.drop(column_name,1)
+            if self._pandas_flag:
+                for column_name in FeatureEngineeringAutoML_obj.dimension_cols:
+                    preprocess_df[column_name + '_ed_label_encoded'] = LabelEncoder().fit_transform(preprocess_df[column_name])
+                    preprocess_df = preprocess_df.drop(column_name,1)
+            else:
+                FeatureEngineeringAutoML_obj.pyspark_label_encoding(FeatureEngineeringAutoML_obj.dimension_cols)
+                preprocess_df = FeatureEngineeringAutoML_obj.data_frame
             clean_df = preprocess_df
-        X = clean_df.drop(target_dimension[0],1)
-        Y = clean_df[target_dimension[0]]
-        dtree = DecisionTreeClassifier(criterion='gini', max_depth=5,random_state=42)
-        dtree.fit(X, Y)
-        feat_imp_dict = {}
-        for feature, importance in zip(list(X.columns), dtree.feature_importances_):
-            feat_imp_dict[feature] = round(importance,2)
+        if self._pandas_flag:
+            X = clean_df.drop(target_dimension[0],1)
+            Y = clean_df[target_dimension[0]]
+            dtree = DecisionTreeClassifier(criterion='gini', max_depth=5,random_state=42)
+            dtree.fit(X, Y)
+            feat_imp_dict = {}
+            for feature, importance in zip(list(X.columns), dtree.feature_importances_):
+                feat_imp_dict[feature] = round(importance,2)
+        else:
+            num_var = [i[0] for i in clean_df.dtypes if ((i[1]=='int') | (i[1]=='double')) & (i[0]!=target_dimension[0])]
+            num_var = [col for col in num_var if not col.endswith('indexed')]
+            labels_count = [len(clean_df.select(col).distinct().collect()) for col in num_var]
+            labels_count.sort()
+            max_count =  labels_count[-1]
+            label_indexes = StringIndexer(inputCol = target_dimension[0] , outputCol = 'label', handleInvalid = 'keep')
+            assembler = VectorAssembler(inputCols = num_var , outputCol = "features")
+            model = pysparkDecisionTreeClassifier(labelCol="label", \
+                                     featuresCol="features", seed = 8464,\
+                                     impurity='gini', maxDepth=5,\
+                                     maxBins = max_count+2)
+            pipe = Pipeline(stages =[assembler, label_indexes, model])
+
+            mod_fit = pipe.fit(clean_df)
+            df2 = mod_fit.transform(clean_df)
+            list_extract = []
+            for i in df2.schema["features"].metadata["ml_attr"]["attrs"]:
+                list_extract = list_extract + df2.schema["features"].metadata["ml_attr"]["attrs"][i]
+            varlist = pd.DataFrame(list_extract)
+            varlist['score'] = varlist['idx'].apply(lambda x: mod_fit.stages[-1].featureImportances[x])
+            print(varlist,'varlist')
+            feat_imp_dict = pd.Series(varlist.score.values,index=varlist.name).to_dict()
+            print(feat_imp_dict,'feat_imp_dict')
         feat_imp_ori_dict={}
         actual_cols = list(self._data_frame.columns)
         actual_cols.remove(target_dimension[0])
@@ -181,7 +223,10 @@ class ChiSquareNarratives(object):
                     value1.append(feat_imp_dict[j])
             feat_imp_ori_dict.update({i:sum(value1)})
         sort_dict = dict(sorted(feat_imp_ori_dict.items(), key=lambda x: x[1],reverse = True))
-        cat_var = [key for key in dict(self._data_frame.dtypes) if dict(self._data_frame.dtypes)[key] in ['object']]
+        if self._pandas_flag:
+            cat_var = [key for key in dict(self._data_frame.dtypes) if dict(self._data_frame.dtypes)[key] in ['object']]
+        else:
+            cat_var = [i[0] for i in self._data_frame.dtypes if i[1]=='string']
         cat_var.remove(target_dimension[0])
         si_var_dict = {}
         for i,j in sort_dict.items():

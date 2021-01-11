@@ -51,10 +51,16 @@ class BusinessCard(object):
         if self.analysis_type == 'dimension':
             significant_variables_levels = {"None" : 0}
             for each in self._story_result['listOfNodes']:
-                if each['name'] == 'Key Drivers':
-                    for node in each['listOfNodes']:
-                        significant_variables_levels[node['name']] = [self._meta_parser.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
-
+                try:
+                    if each['name'] == 'Key Drivers':
+                        for node in each['listOfNodes']:
+                            significant_variables_levels[node['name']] = [self._meta_parser.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
+                except:
+                    for key in each.keys():
+                        if not key.startswith('maxdepth'):
+                            if each['name'] == 'Key Drivers':
+                                for node in each['listOfNodes']:
+                                    significant_variables_levels[node['name']] = [self._meta_parser.get_num_unique_values(node['name']) if node['name'] in self._dataframe_helper.get_string_columns() else 5][0]
             self.number_analysis_dict = {}
             self.number_analysis_dict["overview_rules"] = self.target_levels*2
             self.number_analysis_dict['association_summary'] = (self.number_dimensions+self.number_measures)*2
@@ -89,21 +95,42 @@ class BusinessCard(object):
     def get_number_prediction_rules(self):
         num_prediction_rules = 0
         for each_node in self._story_result['listOfNodes']:
-            if each_node['name'] == 'Prediction':
-                for card in each_node['listOfCards'][0]['cardData']:
-                    if card['dataType'] == 'table':
-                        num_prediction_rules = len(card['data']['tableData'])
+            try:
+                if each_node['name'] == 'Prediction':
+                    for card in each_node['listOfCards'][0]['cardData']:
+                        if card['dataType'] == 'table':
+                            num_prediction_rules = len(card['data']['tableData'])
+            except:
+                for key in each_node.keys():
+                    if key.startswith('maxdepth'):
+                        if each_node['maxdepth3']['name'] == 'Prediction' or each_node['maxdepth4']['name'] == 'Prediction' or each_node['maxdepth5']['name'] == 'Prediction':
+                            for Depth in range(3,6):
+                                for card in each_node['maxdepth'+str(Depth)]['listOfCards'][0]['cardData']:
+                                    if card['dataType'] == 'table':
+                                        num_prediction_rules += len(card['data']['tableData'])
         return num_prediction_rules
 
     def get_number_pages(self):
         sum = 0
         for each in self._story_result['listOfNodes']:
-            if each['listOfNodes']:
-                for items in each['listOfNodes']:
-                    sum += len(items['listOfCards'])
-                sum += len(each['listOfCards'])
-            else:
-                sum += len(each['listOfCards'])
+            try:
+                if each['listOfNodes']:
+                    for items in each['listOfNodes']:
+                        sum += len(items['listOfCards'])
+                    sum += len(each['listOfCards'])
+                else:
+                    sum += len(each['listOfCards'])
+            except:
+                for key in each.keys():
+                    if key.startswith('maxdepth'):
+                        if each['maxdepth3']['listOfNodes'] or each['maxdepth4']['listOfNodes'] or each['maxdepth5']['listOfNodes']:
+                            for Depth in range(3,6):
+                                for items in each['maxdepth'+str(Depth)]['listOfNodes']:
+                                    sum += len(items['maxdepth'+str(Depth)]['listOfCards'])
+                                sum += len(each['maxdepth'+str(Depth)]['listOfCards'])
+                        else:
+                            for Depth in range(3,6):
+                                sum += len(each['maxdepth'+str(Depth)]['listOfCards'])
         return sum
 
     def get_number_data_points(self):
