@@ -297,16 +297,16 @@ class ResultSetter(object):
         self.scoredtreecards = data
 
         #self.scoredtreecards.append(decisionTree)
-    def set_score_dtree_cards_classifier(self,data,decisionTree,maxdepth):
-        try:
-            data[0]['decisionTree']=decisionTree
-        except:
-            pass
-        self.score_dtree['maxdepth'+str(maxdepth)] = data
-        if maxdepth == 5:
-            dtree = []
-            dtree.append(self.score_dtree)
-            self.scoredtreecards = dtree
+    # def set_score_dtree_cards_classifier(self,data,decisionTree,maxdepth):
+    #     try:
+    #         data[0]['decisionTree']=decisionTree
+    #     except:
+    #         pass
+    #     self.score_dtree['maxdepth'+str(maxdepth)] = data
+    #     if maxdepth == 5:
+    #         dtree = []
+    #         dtree.append(self.score_dtree)
+    #         self.scoredtreecards = dtree
     def set_score_freq_card(self,data):
         self.scorefreqcard  = data
     def get_score_freq_card(self):
@@ -493,12 +493,12 @@ class ResultSetter(object):
         self.decisionTreeNode = json.loads(CommonUtils.convert_python_object_to_json(node))
         self.decisionTreeNode['decisionTree']=decision_tree
     def set_decision_tree_node_classifier(self,node,decision_tree,maxdepth):
-        self.decisionTreeNode["name"]="Prediction"
-        self.decisionTreeNode["slug"]=self.df_context.get_metadata_slugs()[0]
+        self.decisionTreeNode["name"] = "Prediction"
+        self.decisionTreeNode["slug"] = self.df_context.get_metadata_slugs()[0]
         self.decisionTreeNode['Depth Of Tree '+str(maxdepth)] = json.loads(CommonUtils.convert_python_object_to_json(node))
         self.decisionTreeNode['Depth Of Tree '+str(maxdepth)]['decisionTree'] = decision_tree
-        self.decisionTreeNode['Depth Of Tree '+str(maxdepth)]["name"]='Depth Of Tree '+str(maxdepth)
-        self.decisionTreeNode['Depth Of Tree '+str(maxdepth)]["slug"]=self.df_context.get_metadata_slugs()[0]+'_maxdepth'+str(maxdepth)
+        self.decisionTreeNode['Depth Of Tree '+str(maxdepth)]["name"] = 'Depth Of Tree '+str(maxdepth)
+        self.decisionTreeNode['Depth Of Tree '+str(maxdepth)]["slug"] = 'slug_maxdepth'+str(maxdepth)
     def set_anova_node(self,node):
         self.anovaNode = json.loads(CommonUtils.convert_python_object_to_json(node))
     def set_regression_node(self,node):

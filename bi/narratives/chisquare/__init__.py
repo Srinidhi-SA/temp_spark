@@ -127,13 +127,13 @@ class ChiSquareNarratives(object):
                 },
             }
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"initialization","info",display=False,weightKey="narratives")
-        self.new_effect_size,self.signi_dict = self.df_clean(target_dimension)
+        self.new_effect_size,self.signi_dict = self.feat_imp_threshold(target_dimension)
         self._generate_narratives()
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"summarygeneration","info",display=False,weightKey="narratives")
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._analysisName,"completion","info",display=False,weightKey="narratives")
-    def df_clean(self,target_dimension,dummy_Cols = True,label_encoding= False):
+    def feat_imp_threshold(self,target_dimension,dummy_Cols = True,label_encoding= False):
         if self._pandas_flag:
             if is_numeric_dtype(self._data_frame[target_dimension[0]]):
                 self.app_type = 'regression'
@@ -147,13 +147,9 @@ class ChiSquareNarratives(object):
         try:
             DataValidation_obj = DataValidation(self._data_frame, target_dimension[0], self.app_type, self._pandas_flag)
             DataValidation_obj.data_validation_run()
-            if not DataValidation_obj.data_change_dict["target_fitness_check"]:
-                raise ValueError("Target not suitable for "+ str(self.app_type) + " analysis")
         except Exception as e:
             CommonUtils.print_errors_and_store_traceback(self.LOGGER, "datavalidation", e)
             CommonUtils.save_error_messages(self.errorURL, self.app_type, e, ignore=self.ignoreMsg)
-            if str(e) == "Target not suitable for "+ str(self.app_type) + " analysis":
-                raise ValueError("Target not suitable for "+ str(self.app_type) + " analysis")
         try:
             DataPreprocessingAutoML_obj = DataPreprocessingAutoML(DataValidation_obj.data_frame, DataValidation_obj.target, DataValidation_obj.data_change_dict, DataValidation_obj.numeric_cols, DataValidation_obj.dimension_cols, DataValidation_obj.datetime_cols,DataValidation_obj.problem_type,self._pandas_flag)
             DataPreprocessingAutoML_obj.data_preprocessing_run()
@@ -162,7 +158,7 @@ class ChiSquareNarratives(object):
             CommonUtils.save_error_messages(self.errorURL, self.app_type, e, ignore=self.ignoreMsg)
         preprocess_df = DataPreprocessingAutoML_obj.data_frame
         FeatureEngineeringAutoML_obj = FeatureEngineeringAutoML(DataPreprocessingAutoML_obj.data_frame, DataPreprocessingAutoML_obj.target, DataPreprocessingAutoML_obj.data_change_dict, DataPreprocessingAutoML_obj.numeric_cols, DataPreprocessingAutoML_obj.dimension_cols, DataPreprocessingAutoML_obj.datetime_cols, DataPreprocessingAutoML_obj.problem_type,self._pandas_flag)
-        if FeatureEngineeringAutoML_obj.datetime_cols!=0:
+        if FeatureEngineeringAutoML_obj.datetime_cols != 0:
             FeatureEngineeringAutoML_obj.date_column_split(FeatureEngineeringAutoML_obj.datetime_cols)
         if dummy_Cols:
             if self._pandas_flag:
@@ -174,34 +170,30 @@ class ChiSquareNarratives(object):
         if label_encoding:
             if self._pandas_flag:
                 for column_name in FeatureEngineeringAutoML_obj.dimension_cols:
-                    preprocess_df[column_name + '_ed_label_encoded'] = LabelEncoder().fit_transform(preprocess_df[column_name])
+                    preprocess_df[column_name + '_label_encoded'] = LabelEncoder().fit_transform(preprocess_df[column_name])
                     preprocess_df = preprocess_df.drop(column_name,1)
+                clean_df = preprocess_df
             else:
                 FeatureEngineeringAutoML_obj.pyspark_label_encoding(FeatureEngineeringAutoML_obj.dimension_cols)
-                preprocess_df = FeatureEngineeringAutoML_obj.data_frame
-            clean_df = preprocess_df
+                clean_df = FeatureEngineeringAutoML_obj.data_frame
         if self._pandas_flag:
-            X = clean_df.drop(target_dimension[0],1)
-            Y = clean_df[target_dimension[0]]
-            dtree = DecisionTreeClassifier(criterion='gini', max_depth=5,random_state=42)
-            dtree.fit(X, Y)
+            ind_var = clean_df.drop(target_dimension[0],1)
+            target = clean_df[target_dimension[0]]
+            dtree = DecisionTreeClassifier(criterion='gini', max_depth=5, random_state=42)
+            dtree.fit(ind_var, target)
             feat_imp_dict = {}
-            for feature, importance in zip(list(X.columns), dtree.feature_importances_):
+            for feature, importance in zip(list(ind_var.columns), dtree.feature_importances_):
                 feat_imp_dict[feature] = round(importance,2)
         else:
-            num_var = [i[0] for i in clean_df.dtypes if ((i[1]=='int') | (i[1]=='double')) & (i[0]!=target_dimension[0])]
+            num_var = [col[0] for col in clean_df.dtypes if ((col[1]=='int') | (col[1]=='double')) & (col[0]!=target_dimension[0])]
             num_var = [col for col in num_var if not col.endswith('indexed')]
             labels_count = [len(clean_df.select(col).distinct().collect()) for col in num_var]
             labels_count.sort()
             max_count =  labels_count[-1]
             label_indexes = StringIndexer(inputCol = target_dimension[0] , outputCol = 'label', handleInvalid = 'keep')
             assembler = VectorAssembler(inputCols = num_var , outputCol = "features")
-            model = pysparkDecisionTreeClassifier(labelCol="label", \
-                                     featuresCol="features", seed = 8464,\
-                                     impurity='gini', maxDepth=5,\
-                                     maxBins = max_count+2)
+            model = pysparkDecisionTreeClassifier(labelCol="label",featuresCol="features",seed = 8464,impurity='gini',maxDepth=5,maxBins = max_count+2)
             pipe = Pipeline(stages =[assembler, label_indexes, model])
-
             mod_fit = pipe.fit(clean_df)
             df2 = mod_fit.transform(clean_df)
             list_extract = []
@@ -209,35 +201,30 @@ class ChiSquareNarratives(object):
                 list_extract = list_extract + df2.schema["features"].metadata["ml_attr"]["attrs"][i]
             varlist = pd.DataFrame(list_extract)
             varlist['score'] = varlist['idx'].apply(lambda x: mod_fit.stages[-1].featureImportances[x])
-            print(varlist,'varlist')
             feat_imp_dict = pd.Series(varlist.score.values,index=varlist.name).to_dict()
-            print(feat_imp_dict,'feat_imp_dict')
-        feat_imp_ori_dict={}
+        feat_imp_ori_dict = {}
         actual_cols = list(self._data_frame.columns)
         actual_cols.remove(target_dimension[0])
-        for i in actual_cols:
-            value1 = []
-            for j in feat_imp_dict:
-                temp = j.split(i,-1)
+        for col in actual_cols:
+            fea_imp_ori_list = []
+            for col_imp in feat_imp_dict:
+                temp = col_imp.split(col,-1)
                 if len(temp)==2:
-                    value1.append(feat_imp_dict[j])
-            feat_imp_ori_dict.update({i:sum(value1)})
+                    fea_imp_ori_list.append(feat_imp_dict[col_imp])
+            feat_imp_ori_dict.update({col:sum(fea_imp_ori_list)})
         sort_dict = dict(sorted(feat_imp_ori_dict.items(), key=lambda x: x[1],reverse = True))
         if self._pandas_flag:
             cat_var = [key for key in dict(self._data_frame.dtypes) if dict(self._data_frame.dtypes)[key] in ['object']]
         else:
-            cat_var = [i[0] for i in self._data_frame.dtypes if i[1]=='string']
+            cat_var = [col[0] for col in self._data_frame.dtypes if col[1]=='string']
         cat_var.remove(target_dimension[0])
-        si_var_dict = {}
-        for i,j in sort_dict.items():
-            if i in cat_var:
-                si_var_dict[i]=j
+        si_var_dict = {key:value for key,value in sort_dict.items() if key in cat_var}
         threshold = 0
         si_var_thresh = {}
-        for i,j in si_var_dict.items():
-            threshold = threshold + j
+        for key,value in si_var_dict.items():
+            threshold = threshold + value
             if threshold < 0.8:
-                si_var_thresh[i] = j
+                si_var_thresh[key] = value
         return feat_imp_dict,si_var_thresh
 
 
