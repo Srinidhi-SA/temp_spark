@@ -225,9 +225,9 @@ class LogisticRegressionPysparkScript(object):
             else:
                 if automl_enable:
                     paramGrid = ParamGridBuilder()\
-                    .addGrid(clf.regParam, [0.1, 0.01]) \
-                    .addGrid(clf.fitIntercept, [False, True])\
-                    .addGrid(clf.elasticNetParam, [0.0, 0.5, 1.0])\
+                    .addGrid(clf.regParam, [0.2, 0.1,]) \
+                    .addGrid(clf.fitIntercept, [True, False])\
+                    .addGrid(clf.elasticNetParam, [0.2, 0.5])\
                     .build()
                 crossval = CrossValidator(estimator=estimator,
                               estimatorParamMaps=paramGrid,
@@ -586,7 +586,7 @@ class LogisticRegressionPysparkScript(object):
                                                             self._scriptStages, self._slug, "completion", "info",
                                                             display=True, emptyBin=False, customMsg=None,
                                                             weightKey="total")
-
+        print("\n\n")
 
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()

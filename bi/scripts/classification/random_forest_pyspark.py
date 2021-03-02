@@ -193,8 +193,8 @@ class RandomForestPysparkScript(object):
             else:
                 if automl_enable:
                     params_grid = {
-                                    'minInstancesPerNode': [2,3],
-                                    'numTrees': [10,20,100],
+                                    'minInstancesPerNode': [1,3],
+                                    'numTrees': [10,20],
                                     'impurity': ['gini']}
                     algoParams = {getattr(clf, k):v if isinstance(v, list) else \
                                    [v] for k,v in params_grid.items() if k in clfParams}

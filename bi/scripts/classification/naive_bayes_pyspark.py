@@ -218,7 +218,7 @@ class NaiveBayesPysparkScript(object):
 
             else:
                 if automl_enable:
-                    paramGrid = (ParamGridBuilder().addGrid(clf.smoothing, [0.0,0.2,0.4,0.6,0.8,1.0]).build())
+                    paramGrid = (ParamGridBuilder().addGrid(clf.smoothing, [1.0,0.2]).build())
                 crossval = CrossValidator(estimator=estimator,
                               estimatorParamMaps=paramGrid,
                               evaluator=BinaryClassificationEvaluator() if levels == 2 else MulticlassClassificationEvaluator(),
@@ -570,6 +570,7 @@ class NaiveBayesPysparkScript(object):
 
         CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"completion","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
 
+        print("\n\n")
 
     def Predict(self):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_prediction_weight()

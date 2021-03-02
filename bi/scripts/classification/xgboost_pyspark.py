@@ -218,7 +218,7 @@ class XGBoostPysparkScript(object):
 
             else:
                 if automl_enable:
-                    paramGrid=(ParamGridBuilder().addGrid(clf.maxDepth,[2,4,5,6]).addGrid(clf.minInfoGain,[0.0, 0.05]).addGrid(clf.impurity,['entropy' , 'gini']).addGrid(clf.maxBins, [32]).build())
+                    paramGrid=(ParamGridBuilder().addGrid(clf.maxDepth,[4, 5]).addGrid(clf.minInfoGain,[0.01, 0.05]).addGrid(clf.impurity,['gini']).addGrid(clf.maxBins, [32]).build())
                 crossval = CrossValidator(estimator=estimator,
                               estimatorParamMaps=paramGrid,
                               evaluator=BinaryClassificationEvaluator().setRawPredictionCol("probability") if levels == 2 else MulticlassClassificationEvaluator(),

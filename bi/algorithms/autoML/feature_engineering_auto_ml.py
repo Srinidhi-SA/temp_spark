@@ -112,25 +112,29 @@ class FeatureEngineeringAutoML():
 
 
     def feature_engineering_run(self):
+        start_time=time.time()
         self.date_column_split(self.datetime_cols)
+        print("time taken for date column split:{} seconds".format((time.time()-start_time)))
         if not self._pandas_flag:
-            def translate(mapping):
-                def translate_(col):
-                    return mapping.get(col)
-                return udf(translate_, FloatType())
-            for column in self.dimension_cols:
-                map_vals = self.data_frame.cube(column).count()
-                map_dict = list(map(lambda row: row.asDict(), map_vals.collect()))
-                if len(map_dict)<100:
-                    mapping = {feature[column]:feature['count']/self.data_frame.count() for feature in map_dict}
-                    self.data_frame = self.data_frame.withColumn("value_created", translate(mapping)(column))
-                    self.data_frame = self.data_frame.withColumn(column,when(self.data_frame.value_created >0.01 ,self.data_frame[column]).otherwise('other'))
-                    self.data_frame = self.data_frame.drop('value_created')
-            dum_col,label_col = self.cat_en_rule(self.dimension_cols)
-            if len(dum_col)>0:
-                self.pyspark_one_hot_encoding(dum_col)
-            if len(label_col)>0:
-                self.pyspark_label_encoding(label_col)
+            #def translate(mapping):
+            #    def translate_(col):
+            #        return mapping.get(col)
+            #   return udf(translate_, FloatType())
+            #for column in self.dimension_cols:
+            #    map_vals = self.data_frame.cube(column).count()
+            #    map_dict = list(map(lambda row: row.asDict(), map_vals.collect()))
+            #    if len(map_dict)<100:
+            #        mapping = {feature[column]:feature['count']/self.data_frame.count() for feature in map_dict}
+            #        self.data_frame = self.data_frame.withColumn("value_created", translate(mapping)(column))
+            #        self.data_frame = self.data_frame.withColumn(column,when(self.data_frame.value_created >0.01 ,self.data_frame[column]).otherwise('other'))
+            #        self.data_frame = self.data_frame.drop('value_created')
+            #dum_col,label_col = self.cat_en_rule(self.dimension_cols)
+            #if len(dum_col)>0:
+            #    self.pyspark_one_hot_encoding(dum_col)
+            #if len(label_col)>0:
+            label_time=time.time()
+            self.pyspark_label_encoding(self.dimension_cols)
+            print("time taken for label encoding:{} seconds".format((time.time()-label_time)))
         else:
             self.data_frame = self.data_frame.apply(lambda x: x.mask(x.map(x.value_counts()/x.count())<0.01, 'other') if x.name in self.dimension_cols else x)
             self.sk_one_hot_encoding(self.dimension_cols)
