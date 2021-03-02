@@ -12,7 +12,7 @@ from pyspark.ml.feature import StringIndexer, OneHotEncoderEstimator, VectorAsse
 from pyspark.ml import Pipeline
 from bi.stats.util import Stats
 from bi.algorithms import utils as MLUtils
-import pyspark.sql.functions as f
+import pyspark.sql.functions as F
 from past.utils import old_div
 import math
 
