@@ -30,6 +30,7 @@ wheels/
 .installed.cfg
 configs/config.cfg
 configs/filtercontext.cfg
+build/
 
 
 # PyInstaller
