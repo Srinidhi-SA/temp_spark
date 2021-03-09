@@ -363,6 +363,8 @@ class ContextSetter(object):
         self.anovaOnScoredData = data
     def get_anova_on_scored_data(self):
         return self.anovaOnScoredData
+    def get_model_threshold(self):
+        return self.MODEL_FOR_SCORING["threshold"]
     def get_model_for_scoring(self):
         return self.MODEL_FOR_SCORING["Model Id"]
     def set_ml_environment(self,data):
@@ -474,6 +476,7 @@ class ContextSetter(object):
 
     def get_label_map(self):
         if len(self.labelMappingDict) > 0:
+            print("LABEL MAPPING DICT - ", self.labelMappingDict)
             original = self.labelMappingDict[0]
             modified = {}
             for val in original:

@@ -82,6 +82,12 @@ def main(configJson):
     print("||############################## Parsing Config file ##############################||")
 
     config = configJson["config"]
+    if "TRAINER_MODE" in config and config["TRAINER_MODE"] == "autoML" :
+        if "app_type" in config["FILE_SETTINGS"] and config["FILE_SETTINGS"]["app_type"] == "classification":
+            if config['FILE_SETTINGS']['inputfile'][0].startswith("https:"):
+                config['ALGORITHM_SETTING'] = GLOBALSETTINGS.algorithm_settings_pandas
+            else:
+                config['ALGORITHM_SETTING'] = GLOBALSETTINGS.algorithm_settings_pyspark
     jobConfig = configJson["job_config"]
     jobType = jobConfig["job_type"]
     if jobType == "prediction":
@@ -181,21 +187,21 @@ def main(configJson):
                         automl_enable = True
                     one_click_json = {}
                     if dataframe_context.get_trainerMode() == "autoML":
-                        dataframe_context._pandas_flag = True
+                        # dataframe_context._pandas_flag = True
                         if jobType == "training":
-                            try:
-                                df = df.toPandas()
-                            except:
-                                pass
+                            # if dataframe_context._pandas_flag :
+                            #     df = df.toPandas()
+                            fs = time.time()
                             autoML_obj =  autoML.AutoMl(df, dataframe_context, GLOBALSETTINGS.APPS_ID_MAP[appid]["type"])
 
                             one_click_json, linear_df, tree_df = autoML_obj.run()
+                            print("Automl Done in ", time.time() - fs, " seconds.")
                         elif jobType == "prediction":
-                            try:
-                                df = df.toPandas()
-                            except:
-                                pass
-                            score_obj =  autoMLScore.Scoring(df, one_click)
+                            #try:
+                            #    df = df.toPandas()
+                            #except:
+                            #    pass
+                            score_obj =  autoMLScore.Scoring(df, one_click, dataframe_context._pandas_flag)
                             linear_df, tree_df = score_obj.run()
                         # linear
                         print('No. of columns in Linear data :',len(list(linear_df.columns)))
@@ -327,7 +333,7 @@ def main(configJson):
 
         ################################ Model Training ############################
         elif jobType == 'training':
-            dataframe_context.set_ml_environment("sklearn")
+            # dataframe_context.set_ml_environment("sklearn")
             if automl_enable is True:
                 MasterHelper.train_models_automl(spark,linear_df,tree_df,dataframe_context,df_helper_linear_df,df_helper_tree_df,metaParserInstance_linear_df,metaParserInstance_tree_df,one_click_json)
             else:
@@ -339,7 +345,7 @@ def main(configJson):
             if automl_enable is True:
                 MasterHelper.score_model_autoML(spark,linear_df,tree_df,dataframe_context,df_helper_linear_df,df_helper_tree_df,metaParserInstance_linear_df,metaParserInstance_tree_df)
             else:
-                dataframe_context.set_ml_environment("sklearn")
+                # dataframe_context.set_ml_environment("sklearn")
                 MasterHelper.score_model(spark,df,dataframe_context,df_helper,metaParserInstance)
 
         ############################################################################

@@ -21,6 +21,10 @@ import humanize
 import jinja2
 import numpy as np
 import pattern
+try:
+    import pattern.en
+except:
+    pass
 import pyspark.sql.functions as PysparkFN
 from pyspark.sql import DataFrame
 from pyspark.sql.types import *
@@ -1085,7 +1089,8 @@ def restructure_donut_chart_data(dataDict,nLevels=None):
     finalData = mainData+[("Others",sum(otherData))]
     return dict(finalData)
 
-def generate_rules(colname,target,rules, total, success, success_percent,analysisType,path_dict,binFlag=False):
+def generate_rules(colname,target,rules, total, success, success_percent,analysisType,path_dict,binFlag=False,dummycols=None,pandas_flag=None):
+    target = str(target)
     ru=re.split(',(?![^(]*\))',rules)
     rules_to_remove=[]
     paths_to_collapse=[]
@@ -1108,16 +1113,49 @@ def generate_rules(colname,target,rules, total, success, success_percent,analysi
     crude_narrative = ''
 
     customSeparator = "|~%%~| "
-    for var in list(key_measures.keys()):
-        if 'upper_limit' in key_measures[var] and 'lower_limit' in key_measures[var]:
-            temp_narrative = temp_narrative + 'the value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
-            crude_narrative = crude_narrative + 'value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
-        elif 'upper_limit' in key_measures[var]:
-            temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
-            crude_narrative = crude_narrative + 'value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
-        elif 'lower_limit' in key_measures[var]:
-            temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
-            crude_narrative = crude_narrative + 'value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
+    if  pandas_flag:
+        actual_cols = dummycols[1]
+        dummy_cols = dummycols[0]
+        measure_columns = [re.sub('[^A-Za-z0-9_$-]+', '', col) for col in list(key_measures.keys())]
+        key_measures = dict(zip(measure_columns,key_measures.values()))
+        for var in measure_columns:
+            if var in dummy_cols:
+                value = []
+                for i in actual_cols:
+                    temp = var.split(i,-1)
+                    if len(temp)==2:
+                        value.append(i)
+                        value.append(temp[-1].strip("_"))
+                if 'upper_limit' in key_measures[var] and 'lower_limit' in key_measures[var]:
+                    temp_narrative = temp_narrative + 'the value of ' + value[0] + ' is '+ value[1] + customSeparator
+                    crude_narrative = crude_narrative + 'value of  ' + value[0] + ' is  '+ value[1] + customSeparator
+                elif 'upper_limit' in key_measures[var]:
+                    temp_narrative = temp_narrative + 'the value of ' + value[0] + ' is not '+ value[1] + customSeparator
+                    crude_narrative = crude_narrative + 'value of ' + value[0] + ' is not '+ value[1] + customSeparator
+                elif 'lower_limit' in key_measures[var]:
+                    temp_narrative = temp_narrative + 'the value of ' + value[0] + ' is '+ value[1] + customSeparator
+                    crude_narrative = crude_narrative + 'value of  ' + value[0] + ' is '+ value[1] + customSeparator
+            else:
+                if 'upper_limit' in key_measures[var] and 'lower_limit' in key_measures[var]:
+                    temp_narrative = temp_narrative + 'the value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+                    crude_narrative = crude_narrative + 'value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+                elif 'upper_limit' in key_measures[var]:
+                    temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+                    crude_narrative = crude_narrative + 'value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+                elif 'lower_limit' in key_measures[var]:
+                    temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
+                    crude_narrative = crude_narrative + 'value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
+    else:
+        for var in list(key_measures.keys()):
+            if 'upper_limit' in key_measures[var] and 'lower_limit' in key_measures[var]:
+                temp_narrative = temp_narrative + 'the value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+                crude_narrative = crude_narrative + 'value of ' + var + ' is between ' + str(round_number(key_measures[var]['lower_limit'],2,False)) + ' to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+            elif 'upper_limit' in key_measures[var]:
+                temp_narrative = temp_narrative + 'the value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+                crude_narrative = crude_narrative + 'value of ' + var + ' is less than or equal to ' + str(round_number(key_measures[var]['upper_limit'],2,False))+customSeparator
+            elif 'lower_limit' in key_measures[var]:
+                temp_narrative = temp_narrative + 'the value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
+                crude_narrative = crude_narrative + 'value of ' + var + ' is greater than ' + str(round_number(key_measures[var]['lower_limit'],2,False))+customSeparator
     # crude_narrative = temp_narrative
     for var in list(key_dimensions.keys()):
         if 'in' in key_dimensions[var] and len(key_dimensions[var]['in'])>0:

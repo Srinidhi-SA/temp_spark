@@ -23,15 +23,16 @@ class DecisionTreeScript(object):
         transformer = DataFrameTransformer(self._data_frame,self._dataframe_helper,self._dataframe_context,self._metaParser)
         transformer.change_dimension_level_name([targetDimension])
         self._data_frame = self._dataframe_helper.get_data_frame()
-        df_decision_tree_obj = DecisionTrees(self._data_frame, self._dataframe_helper, self._dataframe_context, self._spark,self._metaParser).test_all(dimension_columns=(self._dataframe_context.get_result_column(),))
+        for max_depth in range(3,6):
+            df_decision_tree_obj = DecisionTrees(self._data_frame, self._dataframe_helper, self._dataframe_context, self._spark,self._metaParser, max_depth).test_all(dimension_columns=(self._dataframe_context.get_result_column(),))
 
-        # print 'RESULT: %s' % (json.dumps(df_decision_tree_result, indent=2))
-        # df_decision_tree_result['tree']["children"] = json.dumps(df_decision_tree_result['tree']["children"])
-        # DataWriter.write_dict_as_json(self._spark, df_decision_tree_result, self._dataframe_context.get_result_file()+'DecisionTree/')
+            # print 'RESULT: %s' % (json.dumps(df_decision_tree_result, indent=2))
+            # df_decision_tree_result['tree']["children"] = json.dumps(df_decision_tree_result['tree']["children"])
+            # DataWriter.write_dict_as_json(self._spark, df_decision_tree_result, self._dataframe_context.get_result_file()+'DecisionTree/')
 
-        #Narratives
-        narratives_obj = DecisionTreeNarrative(self._dataframe_context.get_result_column(), df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,self._story_narrative)
-        # narratives = CommonUtils.as_dict(narratives_obj)
+            #Narratives
+            narratives_obj = DecisionTreeNarrative(self._dataframe_context.get_result_column(), df_decision_tree_obj, self._dataframe_helper, self._dataframe_context,self._metaParser,self._result_setter,self._story_narrative)
+            # narratives = CommonUtils.as_dict(narratives_obj)
 
-        # print "Narratives: %s" % (json.dumps(narratives, indent=2))
-        # DataWriter.write_dict_as_json(self._spark, narratives, self._dataframe_context.get_narratives_file()+'DecisionTree/')
+            # print "Narratives: %s" % (json.dumps(narratives, indent=2))
+            # DataWriter.write_dict_as_json(self._spark, narratives, self._dataframe_context.get_narratives_file()+'DecisionTree/')

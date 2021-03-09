@@ -31,7 +31,7 @@ from bi.narratives.chisquare import ChiSquareNarratives
 from pyspark.sql.functions import udf
 from pyspark.sql import functions as FN
 from pyspark.sql.types import *
-from pyspark.ml.regression import DecisionTreeRegressor
+from pyspark.ml.regression import DecisionTreeRegressor as Dtree
 from pyspark.ml.feature import IndexToString
 from pyspark.ml.tuning import ParamGridBuilder, TrainValidationSplit,CrossValidator
 from pyspark.ml.evaluation import RegressionEvaluator
@@ -49,7 +49,10 @@ from sklearn.metrics import r2_score,explained_variance_score
 from math import sqrt
 import pandas as pd
 import numpy as np
-from sklearn.externals import joblib
+try:
+    from sklearn.externals import joblib
+except:
+    import joblib
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 
@@ -66,7 +69,7 @@ from bi.common import NarrativesTree
 
 
 class DTREERegressionModelScript(object):
-    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment="sklearn"):
+    def __init__(self, data_frame, df_helper,df_context, spark, prediction_narrative, result_setter,meta_parser,mlEnvironment):
         self._metaParser = meta_parser
         self._prediction_narrative = prediction_narrative
         self._result_setter = result_setter
@@ -128,11 +131,15 @@ class DTREERegressionModelScript(object):
             model_path = model_path[7:]
         validationDict = self._dataframe_context.get_validation_dict()
         print("model_path",model_path)
-        pipeline_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/pipeline/"
-        model_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/model"
+        pipeline_filepath = str(model_path)+"/"+str(self._slug)+"/pipeline/"
+        model_filepath = str(model_path)+"/"+str(self._slug)+"/model"
         pmml_filepath = "file://"+str(model_path)+"/"+str(self._slug)+"/modelPmml"
 
         df = self._data_frame
+        if self._dataframe_context.get_trainerMode() == "autoML":
+            automl_enable=True
+        else:
+            automl_enable=False
         if self._mlEnv == "spark":
             pipeline = MLUtils.create_pyspark_ml_pipeline(numerical_columns,categorical_columns,result_column,algoType="regression")
 
@@ -143,43 +150,79 @@ class DTREERegressionModelScript(object):
             # print indexed.select([result_column,"features"]).show(5)
             MLUtils.save_pipeline_or_model(pipelineModel,pipeline_filepath)
             # OriginalTargetconverter = IndexToString(inputCol="label", outputCol="originalTargetColumn")
-            dtreer = DecisionTreeRegressor(labelCol=result_column, featuresCol='features',predictionCol="prediction")
+            dtreer = Dtree(labelCol=result_column, featuresCol='features',predictionCol="prediction")
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                algoParams = algoSetting.get_params_dict()
+            else:
+                algoParams = algoSetting.get_params_dict_hyperparameter()
+            clfParams = [prm.name for prm in dtreer.params]
+            algoParams = {getattr(dtreer, k):v if isinstance(v, list) else [v] for k,v in algoParams.items() if k in clfParams}
+
+            paramGrid = ParamGridBuilder()
+            for k,v in algoParams.items():
+                if v == [None] * len(v):
+                    continue
+                paramGrid = paramGrid.addGrid(k,v)
+            paramGrid = paramGrid.build()
+
+            if len(paramGrid) > 1:
+                hyperParamInitParam = algoSetting.get_hyperparameter_params()
+                evaluationMetricDict = {"name":hyperParamInitParam["evaluationMetric"]}
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.PYSPARK_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+            else:
+                evaluationMetricDict = algoSetting.get_evaluvation_metric(Type="Regression")
+                evaluationMetricDict["displayName"] = GLOBALSETTINGS.PYSPARK_EVAL_METRIC_NAME_DISPLAY_MAP[evaluationMetricDict["name"]]
+
             if validationDict["name"] == "kFold":
                 defaultSplit = GLOBALSETTINGS.DEFAULT_VALIDATION_OBJECT["value"]
                 numFold = int(validationDict["value"])
-                if numFold == 0:
-                    numFold = 3
+                if automl_enable:
+                    paramGrid = ParamGridBuilder()\
+                        .addGrid(dtreer.maxDepth,[6,10]) \
+                        .addGrid(dtreer.minInfoGain,[0.0, 0.05])\
+                        .addGrid(dtreer.maxBins, [32])\
+                        .build()
                 trainingData,validationData = indexed.randomSplit([defaultSplit,1-defaultSplit], seed=12345)
-                paramGrid = ParamGridBuilder()\
-                    .addGrid(dtreer.regParam, [0.1, 0.01]) \
-                    .addGrid(dtreer.fitIntercept, [False, True])\
-                    .addGrid(dtreer.elasticNetParam, [0.0, 0.5, 1.0])\
-                    .build()
+                # paramGrid = ParamGridBuilder()\
+                #     .addGrid(dtreer.maxDepth,[2,4,5,6]) \
+                #     .addGrid(dtreer.minInfoGain,[0.0, 0.05])\
+                #     .addGrid(dtreer.maxBins, [32])\
+                #     .build()
                 crossval = CrossValidator(estimator=dtreer,
                               estimatorParamMaps=paramGrid,
-                              evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
+                              evaluator=RegressionEvaluator(metricName=evaluationMetricDict["displayName"],predictionCol="prediction", labelCol=result_column),
                               numFolds=numFold)
                 st = time.time()
                 cvModel = crossval.fit(indexed)
                 trainingTime = time.time()-st
                 print("cvModel training takes",trainingTime)
-                bestModel = cvModel.bestModel
+                bestEstimator = cvModel.bestModel
             elif validationDict["name"] == "trainAndtest":
-                trainingData,validationData = indexed.randomSplit([float(validationDict["value"]),1-float(validationDict["value"])], seed=12345)
+                train_test_ratio = float(self._dataframe_context.get_train_test_split())
+                trainingData,validationData = indexed.randomSplit([train_test_ratio,1-(train_test_ratio)], seed=12345)
                 st = time.time()
-                fit = dtreer.fit(trainingData)
+                tvs = TrainValidationSplit(estimator=dtreer,
+                              estimatorParamMaps=paramGrid,
+                              evaluator=RegressionEvaluator(predictionCol="prediction", labelCol=result_column),
+                              trainRatio=train_test_ratio)
+                fit = tvs.fit(indexed)
                 trainingTime = time.time()-st
                 print("time to train",trainingTime)
-                bestModel = fit
+                bestEstimator = fit.bestModel
 
-            featureImportance = bestModel.featureImportances
+            featureImportance = bestEstimator.featureImportances
             print(featureImportance,type(featureImportance))
+            modelName = "M"+"0"*(GLOBALSETTINGS.MODEL_NAME_MAX_LENGTH-1)+"1"
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                modelFilepathArr = model_filepath.split("/")[:-1]
+                modelFilepathArr.append(modelName)
+                bestEstimator.save("/".join(modelFilepathArr))
             # print featureImportance[0],len(featureImportance[1],len(featureImportance[2]))
             print(len(featureMapping))
             featuresArray = [(name, featureImportance[idx]) for idx, name in featureMapping]
             print(featuresArray)
-            MLUtils.save_pipeline_or_model(bestModel,model_filepath)
-            transformed = bestModel.transform(validationData)
+            MLUtils.save_pipeline_or_model(bestEstimator,model_filepath)
+            transformed = bestEstimator.transform(validationData)
             transformed = transformed.withColumn(result_column,transformed[result_column].cast(DoubleType()))
             transformed = transformed.select([result_column,"prediction",transformed[result_column]-transformed["prediction"]])
             transformed = transformed.withColumnRenamed(transformed.columns[-1],"difference")
@@ -187,6 +230,7 @@ class DTREERegressionModelScript(object):
             transformed = transformed.withColumnRenamed(transformed.columns[-1],"mape")
             sampleData = None
             nrows = transformed.count()
+            modelmanagement_={param[0].name: param[1] for param in dtreer.extractParamMap().items()}
             if nrows > 100:
                 sampleData = transformed.sample(False, float(100)/nrows, seed=420)
             else:
@@ -201,6 +245,7 @@ class DTREERegressionModelScript(object):
             runtime = round((time.time() - st_global),2)
             # print transformed.count()
             mapeDf = transformed.select("mape")
+            self._result_setter.set_hyper_parameter_results(self._slug,None)
             # print mapeDf.show()
             mapeStats = MLUtils.get_mape_stats(mapeDf,"mape")
             mapeStatsArr = list(mapeStats.items())
@@ -212,6 +257,11 @@ class DTREERegressionModelScript(object):
             quantileSummaryArr = list(quantileSummaryDict.items())
             quantileSummaryArr = sorted(quantileSummaryArr,key=lambda x:int(x[0]))
             # print quantileSummaryArr
+            pred_list = transformed.select('prediction').collect()
+            predicted=[int(row.prediction) for row in pred_list]
+            objs = {"trained_model":bestEstimator,"predicted":predicted,
+            "feature_importance":featureImportance,
+            "featureList":list(categorical_columns) + list(numerical_columns)}
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("dtree Regression")
             self._model_summary.set_algorithm_display_name("Decision Tree Regression")
@@ -221,12 +271,46 @@ class DTREERegressionModelScript(object):
             self._model_summary.set_target_variable(result_column)
             self._model_summary.set_validation_method(validationDict["displayName"])
             self._model_summary.set_model_evaluation_metrics(metrics)
-            self._model_summary.set_model_params(bestEstimator.get_params())
+            self._model_summary.set_feature_importance(objs["feature_importance"])
+            self._model_summary.set_feature_list(objs["featureList"])
+            self._model_summary.set_model_features(objs["featureList"])
+            self._model_summary.set_model_params(modelmanagement_)
             self._model_summary.set_quantile_summary(quantileSummaryArr)
             self._model_summary.set_mape_stats(mapeStatsArr)
             self._model_summary.set_sample_data(sampleData.toPandas().to_dict())
             self._model_summary.set_feature_importance(featureImportance)
+            self._model_summary.set_model_mse(metrics["neg_mean_squared_error"])
+            self._model_summary.set_model_mae(metrics["neg_mean_absolute_error"])
+            self._model_summary.set_rmse(metrics["RMSE"])
+            self._model_summary.set_model_rsquared(metrics["r2"])
             # print CommonUtils.convert_python_object_to_json(self._model_summary)
+            print(modelmanagement_)
+            self._model_management = MLModelSummary()
+            self._model_management.set_max_bins(data=modelmanagement_['maxBins'])
+            self._model_management.set_max_depth(data=modelmanagement_['maxDepth'])
+            self._model_management.set_min_info_gain(data=modelmanagement_['minInfoGain'])
+            self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+            self._model_management.set_training_status(data="completed")# training status
+            self._model_management.set_training_time(runtime) # run time
+            self._model_management.set_rmse(metrics["RMSE"])
+            self._model_management.set_model_mse(metrics["neg_mean_squared_error"])
+            self._model_management.set_model_mae(metrics["neg_mean_absolute_error"])
+            self._model_management.set_model_rsquared(metrics["r2"])
+            self._model_management.set_algorithm_name("Decision Tree Regression")#algorithm name
+            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+            self._model_management.set_target_variable(result_column)#target column name
+            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+            self._model_management.set_datasetName(self._datasetName)
+
+            modelManagementModelSettingsJson = [
+
+                                      ["Training Dataset",self._model_management.get_datasetName()],
+                                      ["Target Column",self._model_management.get_target_variable()],
+                                      ["Algorithm",self._model_management.get_algorithm_name()],
+                                      ["Max Bins",self._model_management.get_max_bins()],
+                                      ["Max Depth",self._model_management.get_max_depth()],
+                                      ["Model Validation",self._model_management.get_validation_method()],]
+
         elif self._mlEnv == "sklearn":
             model_filepath = model_path+"/"+self._slug+"/model.pkl"
             x_train,x_test,y_train,y_test = self._dataframe_helper.get_train_test_data()
@@ -375,6 +459,8 @@ class DTREERegressionModelScript(object):
             quantileSummaryArr = [(obj[0],{"splitRange":(obj[1]["prediction"].left,obj[1]["prediction"].right),"count":obj[1]["count"],"mean":obj[1]["mean"],"sum":obj[1]["sum"]}) for obj in quantileArr]
             print(quantileSummaryArr)
             runtime = round((time.time() - st_global),2)
+            if algoSetting.is_hyperparameter_tuning_enabled() or automl_enable:
+                modelName = resultArray[0]["Model Id"]
 
             self._model_summary.set_model_type("regression")
             self._model_summary.set_algorithm_name("DTREE Regression")
@@ -412,6 +498,68 @@ class DTREERegressionModelScript(object):
                 self._result_setter.update_pmml_object({self._slug:pmmlText})
             except:
                 pass
+            modelmanagement_=self._model_summary.get_model_params()
+            if not algoSetting.is_hyperparameter_tuning_enabled():
+                self._model_management = MLModelSummary()
+                self._model_management.set_criterion(data=modelmanagement_['criterion'])
+                self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
+                self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
+                self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
+                self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
+                self._model_management.set_impurity_decrease_cutoff_for_split(data=str(modelmanagement_['min_impurity_decrease']))
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self._model_management.set_training_time(runtime) # run time
+                self._model_management.set_algorithm_name("Random Forest Regression")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))#creation date
+                self._model_management.set_datasetName(self._datasetName)
+                self._model_management.set_rmse(metrics["RMSE"])
+                self._model_management.set_model_mse(metrics["neg_mean_squared_error"])
+                self._model_management.set_model_mae(metrics["neg_mean_absolute_error"])
+                self._model_management.set_model_rsquared(metrics["r2"])
+
+
+            else:
+                self._model_management = MLModelSummary()
+                self._model_management.set_criterion(data=modelmanagement_['criterion'])
+                self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
+                self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
+                self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
+                self._model_management.set_max_leaf_nodes(data=modelmanagement_['max_leaf_nodes'])
+                self._model_management.set_impurity_decrease_cutoff_for_split(data=str(modelmanagement_['min_impurity_split']))
+
+                self._model_management.set_job_type(self._dataframe_context.get_job_name()) #Project name
+                self._model_management.set_training_status(data="completed")# training status
+                self._model_management.set_no_of_independent_variables(data=x_train) #no of independent varables
+                self._model_management.set_training_time(runtime) # run tim
+                self._model_management.set_algorithm_name("Random Forest Regression")#algorithm name
+                self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")#validation method
+                self._model_management.set_target_variable(result_column)#target column name
+                self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M')))#creation date
+                self._model_management.set_datasetName(self._datasetName)
+                self._model_management.set_rmse(metrics["RMSE"])
+                self._model_management.set_model_mse(metrics["neg_mean_squared_error"])
+                self._model_management.set_model_mae(metrics["neg_mean_absolute_error"])
+                self._model_management.set_model_rsquared(metrics["r2"])
+            modelManagementModelSettingsJson = [
+
+                                  ["Training Dataset",self._model_management.get_datasetName()],
+                                  ["Target Column",self._model_management.get_target_variable()],
+                                  ["Algorithm",self._model_management.get_algorithm_name()],
+                                  ["Model Validation",self._model_management.get_validation_method()],
+                                  ["Criterion",self._model_management.get_criterion()],
+                                  ["Max Depth",self._model_management.get_max_depth()],
+                                  ["Minimum Instances For Split",self._model_management.get_min_instance_for_split()],
+                                  ["Minimum Instances For Leaf Node",self._model_management.get_min_instance_for_leaf_node()],
+                                  ["Max Leaf Nodes",str(self._model_management.get_max_leaf_nodes())],
+                                  ["Impurity Decrease cutoff for Split",self._model_management.get_impurity_decrease_cutoff_for_split()],
+                                  ["No of Estimators",self._model_management.get_no_of_estimators()],
+                                  ["Bootstrap Sampling",str(self._model_management.get_bootstrap_sampling())],
+                                  ["No Of Jobs",self._model_management.get_no_of_jobs()]
+                                    ]
 
 
         if not algoSetting.is_hyperparameter_tuning_enabled():
@@ -437,7 +585,7 @@ class DTREERegressionModelScript(object):
                         "evaluationMetricValue":metrics[evaluationMetricDict["name"]],
                         "evaluationMetricName":evaluationMetricDict["name"],
                         "slug":self._model_summary.get_slug(),
-                        "Model Id":resultArray[0]["Model Id"]
+                        "Model Id":modelName
                         }
             modelSummaryJson = {
                 "dropdown":modelDropDownObj,
@@ -447,42 +595,6 @@ class DTREERegressionModelScript(object):
                 "slug":self._model_summary.get_slug(),
                 "name":self._model_summary.get_algorithm_name()
             }
-        modelmanagement_=self._model_summary.get_model_params()
-
-        self._model_management=MLModelSummary()
-        if not algoSetting.is_hyperparameter_tuning_enabled():
-            self._model_management.set_criterion(data=modelmanagement_['criterion'])
-            self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
-            self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
-            self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
-            self._model_management.set_max_leaf_nodes(data=str(modelmanagement_['max_leaf_nodes']))
-            self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_decrease'])
-            self._model_management.set_algorithm_name("Decision Tree Regression")
-            self._model_management.set_job_type(self._dataframe_context.get_job_name())
-            self._model_management.set_training_status(data="completed")
-            self._model_management.set_rmse(metrics["RMSE"])
-            self._model_management.set_training_time(runtime)
-            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))
-            self._model_management.set_datasetName(self._datasetName)
-            self._model_management.set_target_variable(result_column)
-            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
-        else:
-            self._model_management.set_criterion(data=modelmanagement_['criterion'])
-            self._model_management.set_max_depth(data=modelmanagement_['max_depth'])
-            self._model_management.set_min_instance_for_split(data=modelmanagement_['min_samples_split'])
-            self._model_management.set_min_instance_for_leaf_node(data=modelmanagement_['min_samples_leaf'])
-            self._model_management.set_max_leaf_nodes(data=str(modelmanagement_['max_leaf_nodes']))
-            self._model_management.set_impurity_decrease_cutoff_for_split(data=modelmanagement_['min_impurity_decrease'])
-            self._model_management.set_job_type(self._dataframe_context.get_job_name())
-            self._model_management.set_algorithm_name("Decision Tree Regression")
-            self._model_management.set_training_status(data="completed")
-            self._model_management.set_rmse(metrics["RMSE"])
-            self._model_management.set_training_time(runtime)
-            self._model_management.set_creation_date(data=str(datetime.now().strftime('%b %d ,%Y  %H:%M ')))
-            self._model_management.set_datasetName(self._datasetName)
-            self._model_management.set_target_variable(result_column)
-            self._model_management.set_validation_method(str(validationDict["displayName"])+"("+str(validationDict["value"])+")")
-            self._model_management.set_splitter(modelmanagement_["splitter"])
         modelManagementSummaryJson =[
 
                     ["Project Name",self._model_management.get_job_type()],
@@ -494,36 +606,6 @@ class DTREERegressionModelScript(object):
                     ["Created On",self._model_management.get_creation_date()]
 
                     ]
-        if algoSetting.is_hyperparameter_tuning_enabled():
-            modelManagementModelSettingsJson =[
-
-                     ["Training Dataset",self._model_management.get_datasetName()],
-                     ["Target Column",self._model_management.get_target_variable()],
-                     ["Algorithm",self._model_management.get_algorithm_name()],
-                     ["Model Validation",self._model_management.get_validation_method()],
-                     ["Criterion",self._model_management.get_criterion()],
-                     ["Max Depth",self._model_management.get_max_depth()],
-                     ["Minimum Instances For Split",self._model_management.get_min_instance_for_split()],
-                     ["Minimum Instances For Leaf Node",self._model_management.get_min_instance_for_leaf_node()],
-                     ["Max Leaf Nodes",str(self._model_management.get_max_leaf_nodes())],
-                     ["Impurity Decrease cutoff for Split",self._model_management.get_impurity_decrease_cutoff_for_split()],
-                     ["Node Split Strategy ",self._model_management.get_splitter()]
-                    ]
-        else:
-            modelManagementModelSettingsJson =[
-
-                     ["Training Dataset",self._model_management.get_datasetName()],
-                     ["Target Column",self._model_management.get_target_variable()],
-                     ["Algorithm",self._model_management.get_algorithm_name()],
-                     ["Model Validation",self._model_management.get_validation_method()],
-                     ["Criterion",self._model_management.get_criterion()],
-                     ["Max Depth",self._model_management.get_max_depth()],
-                     ["Minimum Instances For Split",self._model_management.get_min_instance_for_split()],
-                     ["Minimum Instances For Leaf Node",self._model_management.get_min_instance_for_leaf_node()],
-                     ["Max Leaf Nodes",str(self._model_management.get_max_leaf_nodes())],
-                     ["Impurity Decrease cutoff for Split",self._model_management.get_impurity_decrease_cutoff_for_split()]
-                    ]
-        print(modelManagementModelSettingsJson)
 
         dtreerCards = [json.loads(CommonUtils.convert_python_object_to_json(cardObj)) for cardObj in MLUtils.create_model_summary_cards(self._model_summary)]
 
@@ -585,7 +667,7 @@ class DTREERegressionModelScript(object):
 
         if self._mlEnv == "spark":
             score_data_path = self._dataframe_context.get_score_path()+"/data.csv"
-            trained_model_path = "file://" + self._dataframe_context.get_model_path()
+            trained_model_path =  self._dataframe_context.get_model_path()
             trained_model_path += "/model"
             pipeline_path = "/".join(trained_model_path.split("/")[:-1])+"/pipeline"
             print("trained_model_path",trained_model_path)
@@ -603,7 +685,19 @@ class DTREERegressionModelScript(object):
             if score_data_path.startswith("file"):
                 score_data_path = score_data_path[7:]
             pandas_scored_df.to_csv(score_data_path,header=True,index=False)
+            if uid_col:
+                pandas_scored_df = pandas_scored_df[[x for x in pandas_df.columns if x != uid_col]]
+            y_score = pandas_scored_df[result_column]
 
+            scoreKpiArray = MLUtils.get_scored_data_summary(y_score)
+            kpiCard = NormalCard()
+            kpiCardData = [KpiData(data=x) for x in scoreKpiArray]
+            kpiCard.set_card_data(kpiCardData)
+            kpiCard.set_cente_alignment(True)
+            print(CommonUtils.convert_python_object_to_json(kpiCard))
+            self._result_setter.set_kpi_card_regression_score(kpiCard)
+            pandas_scored_df.to_csv(score_data_path,header=True,index=False)
+            CommonUtils.create_update_and_save_progress_message(self._dataframe_context,self._scriptWeightDict,self._scriptStages,self._slug,"predictionFinished","info",display=True,emptyBin=False,customMsg=None,weightKey="total")
             print("STARTING Measure ANALYSIS ...")
             columns_to_keep = []
             columns_to_drop = []

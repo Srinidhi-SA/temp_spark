@@ -21,7 +21,10 @@ try:
 except:
     import pickle
 
-from sklearn.externals import joblib
+try:
+    from sklearn.externals import joblib
+except:
+    import joblib
 from sklearn import metrics
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
@@ -72,7 +75,7 @@ class LgbmScript(object):
         self._scriptWeightDict = self._dataframe_context.get_ml_model_training_weight()
         self._mlEnv = mlEnvironment
         self._model=None
-
+        self._threshold = False
 
         self._scriptStages = {
             "initialization":{
@@ -134,8 +137,8 @@ class LgbmScript(object):
 
             st = time.time()
             levels = df[result_column].unique()
-            clf = lgb.LGBMClassifier(boosting_type='dart',learning_rate=1.0, n_estimators=100,
-                                     reg_lambda=0.2,verbose = -1,random_state =42,n_jobs=-1)
+            clf = lgb.LGBMClassifier(boosting_type='dart',learning_rate=0.1, n_estimators=50,
+                                     reg_lambda=0.2,verbose = -1,random_state =42,n_jobs=1, n_iter_no_change=1)
 
 
             labelEncoder = preprocessing.LabelEncoder()
@@ -263,11 +266,11 @@ class LgbmScript(object):
                             #'max_depth': randint(4, 7),
                             #'num_leaves': randint(1, 39),
                             'min_child_samples': randint(20, 120),
-                            'min_child_weight': [ 1e-2, 1e-1, 1, 1e1, 1e2],
-                            'subsample': uniform(loc=0.2, scale=0.8),
-                            'colsample_bytree': uniform(loc=0.4, scale=0.6),
-                            'reg_alpha': [0, 1, 2, 100],
-                            'learning_rate': [0.01, 0.005, 0.05],
+                            #'min_child_weight': [ 1e-2,1,1e2],
+                            #'subsample': uniform(loc=0.2, scale=0.8),
+                            #'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                            #'reg_alpha': [0, 1,100],
+                            'learning_rate': [0.01,0.05],
                             'scale_pos_weight': [scale_pos_weight],
                             'class_weight': [class_weight]
                         }
@@ -276,11 +279,11 @@ class LgbmScript(object):
                             #'max_depth': [5, 7, 10],
                             #'num_leaves': randint(20, 80),
                             'min_child_samples': randint(100, 500),
-                            'min_child_weight': [1e-2, 1e-1, 1, 1e1, 1e2],
-                            'subsample': uniform(loc=0.2, scale=0.8),
-                            'colsample_bytree': uniform(loc=0.4, scale=0.6),
-                            'reg_alpha': [0,1, 2,100],
-                            'learning_rate': [0.01, 0.03, 1.0],
+                            #'min_child_weight': [1e-2, 1,1e2],
+                            #'subsample': uniform(loc=0.2, scale=0.8),
+                            #'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                            #'reg_alpha': [0,1,100],
+                            'learning_rate': [0.01, 0.03],
                             'scale_pos_weight': [scale_pos_weight],
                             'class_weight': [class_weight]
                         }
@@ -289,11 +292,11 @@ class LgbmScript(object):
                             #'max_depth': [-1, 7, 10, 20],
                             #'num_leaves': randint(40, 300),
                             'min_child_samples': randint(200, 700),
-                            'min_child_weight': [1e-1, 1, 1e1],
-                            'subsample': uniform(loc=0.2, scale=0.8),
-                            'colsample_bytree': uniform(loc=0.4, scale=0.6),
-                            'reg_alpha': [0, 1e-1, 1, 2, 100],
-                            'learning_rate': [0.01, 0.03, 1.0],
+                            #'min_child_weight': [1e-1, 1, 1e1],
+                            #'subsample': uniform(loc=0.2, scale=0.8),
+                            #'colsample_bytree': uniform(loc=0.4, scale=0.6),
+                            #'reg_alpha': [0,1,100],
+                            'learning_rate': [0.01, 0.03],
                             'scale_pos_weight': [scale_pos_weight]
                         }
 
@@ -311,17 +314,22 @@ class LgbmScript(object):
                     #              'bagging_freq':[1],
                     #              'bagging_fraction' :[0.2,0.4,0.6,0.8,1.0]
 
-                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 10}
+                    hyperParamInitParam={'evaluationMetric': 'roc_auc', 'kFold': 2}
                     clfRand = RandomizedSearchCV(clf,params_grid)
                     gridParams = clfRand.get_params()
                     hyperParamInitParam = {k:v for k,v in list(hyperParamInitParam.items()) if k in gridParams }
                     clfRand.set_params(**hyperParamInitParam)
                     modelmanagement_=clfRand.get_params()
-                    numFold=10
+                    numFold=2
                     kFoldClass = SkleanrKFoldResult(numFold,clfRand,x_train,x_test,y_train,y_test,appType,levels,posLabel,evaluationMetricDict=evaluationMetricDict)
                     kFoldClass.train_and_save_result()
                     kFoldOutput = kFoldClass.get_kfold_result()
                     bestEstimator = kFoldClass.get_best_estimator()
+                    y_test = kFoldClass.get_ytest()[0]
+                    y_score = kFoldClass.get_yscore()[0]
+                    y_prob = kFoldClass.get_yprob()[0]
+                    self._threshold = kFoldClass.get_threshold()[0]
+                    bestEstimator.fit(x_train, y_train)
                     print("Lgbm AuTO ML Random CV#######################3")
                 else:
                     algoParams = {k:v for k,v in list(algoParams.items()) if k in list(clf.get_params().keys())}
@@ -351,11 +359,12 @@ class LgbmScript(object):
             except:
                 self._model = bestEstimator
             trainingTime = time.time()-st
-            y_score = np.round(bestEstimator.predict(x_test))
-            try:
-                y_prob = bestEstimator.predict_proba(x_test)
-            except:
-                y_prob = [0]*len(y_score)
+            if not automl_enable:
+                y_score = np.round(bestEstimator.predict(x_test))
+                try:
+                    y_prob = bestEstimator.predict_proba(x_test)
+                except:
+                    y_prob = [0]*len(y_score)
 
             # overall_precision_recall = MLUtils.calculate_overall_precision_recall(y_test,y_score,targetLevel = self._targetLevel)
             # print overall_precision_recall
@@ -487,9 +496,14 @@ class LgbmScript(object):
                 runtime = round((time.time() - hyper_st),2)
 
             try:
-                modelPmmlPipeline = PMMLPipeline([
-                  ("pretrained-estimator", objs["trained_model"])
-                ])
+                if automl_enable:
+                    modelPmmlPipeline = PMMLPipeline([
+                        ("pretrained-estimator", objs["trained_model"].bestEstimator)
+                    ])
+                else:
+                    modelPmmlPipeline = PMMLPipeline([
+                        ("pretrained-estimator", objs["trained_model"])
+                    ])
                 modelPmmlPipeline.target_field = result_column
                 modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
                 sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)
@@ -535,7 +549,8 @@ class LgbmScript(object):
                             "evaluationMetricValue": locals()[evaluationMetricDict["name"]], # self._model_summary.get_model_accuracy(),
                             "evaluationMetricName": evaluationMetricDict["name"],
                             "slug":self._model_summary.get_slug(),
-                            "Model Id":modelName
+                            "Model Id":modelName,
+                            "threshold": str(self._threshold)
                             }
 
                 modelSummaryJson = {
@@ -743,7 +758,7 @@ class LgbmScript(object):
             trained_model_path = self._dataframe_context.get_model_path()
             print(trained_model_path)
             trained_model_path += "/"+self._dataframe_context.get_model_for_scoring()+".pkl"
-
+            threshold = self._dataframe_context.get_model_threshold()
             if trained_model_path.startswith("file"):
                 trained_model_path = trained_model_path[7:]
             score_summary_path = self._dataframe_context.get_score_path()+"/Summary/summary.json"
@@ -761,9 +776,9 @@ class LgbmScript(object):
             pandas_df = pandas_df[trained_model.feature_names]
             y_score = trained_model.predict(pandas_df)
             y_prob = trained_model.predict_proba(pandas_df)
-            y_prob = MLUtils.calculate_predicted_probability(y_prob)
-            y_prob=list([round(x,2) for x in y_prob])
-            score = {"predicted_class":y_score,"predicted_probability":y_prob}
+            y_score, predict_prob = MLUtils.calculate_predicted_probability_new(trained_model, y_prob, threshold, pandas_df)
+            predict_prob = list([round(x, 2) for x in predict_prob])
+            score = {"predicted_class": y_score, "predicted_probability": predict_prob, "class_probability": y_prob}
 
         df["predicted_class"] = score["predicted_class"]
         labelMappingDict = self._dataframe_context.get_label_map()

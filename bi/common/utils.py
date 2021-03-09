@@ -20,6 +20,8 @@ import numpy as np
 import pandas as pd
 import requests
 
+import os
+
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from numpy import size, zeros, where
@@ -125,7 +127,19 @@ def get_spark_session(app_name='Demo App',hive_environment=True):
     if hive_environment:
         return SparkSession.builder.appName(app_name).config(conf=SparkConf()).enableHiveSupport().getOrCreate()
     else:
-        return SparkSession.builder.appName(app_name).getOrCreate()
+        # os.environ['PYSPARK_SUBMIT_ARGS'] = '--jars /home/keshav/pysparkExternalJars/jpmml-sparkml-executable-1.5.0.jar,' \
+        # ' ~/pysparkExternalJars/xgboost4j-0.72.jar, ~/pysparkExternalJars/xgboost4j-spark-0.72.jar pyspark-shell'
+        return SparkSession.builder.appName(app_name) \
+                        .getOrCreate()
+
+                        # .config("spark.executor.extraClassPath", '/home/keshav/pysparkExternalJars/jpmml-sparkml-executable-1.5.0.jar') \
+                        # .config("spark.driver.extraClassPath", '/home/keshav/pysparkExternalJars/xgboost4j-0.72.jar') \
+                        # .config("spark.driver.extraClassPath", '/home/keshav/pysparkExternalJars/xgboost4j-spark-0.72.jar') \
+                        # .config("spark.executor.extraClassPath", '/home/keshav/pysparkExternalJars/xgboost4j-0.72.jar') \
+                        # .config("spark.executor.extraClassPath", '/home/keshav/pysparkExternalJars/xgboost4j-spark-0.72.jar') \
+                        # .config("spark.driver.extraClassPath", '/home/keshav/pysparkExternalJars/jpmml-sparkml-executable-1.5.0.jar') \
+                        # .config("spark.executor.extraClassPath", '/home/keshav/pysparkExternalJars/jpmml-sparkml-executable-1.5.0.jar') \
+
 
 def clean(x):
     from re import sub

@@ -18,7 +18,10 @@ try:
 except:
     import pickle
 
-from sklearn.externals import joblib
+try:
+    from sklearn.externals import joblib
+except:
+    import joblib
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
 from sklearn import metrics

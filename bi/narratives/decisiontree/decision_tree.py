@@ -38,13 +38,16 @@ class DecisionTreeNarrative(object):
         self._blockSplitter = GLOBALSETTINGS.BLOCKSPLITTER
         self._column_name = column_name.lower()
         self._colname = column_name
-
+        self._pandas_flag = df_context._pandas_flag
         self._capitalized_column_name = "%s%s" % (column_name[0].upper(), column_name[1:])
         self._decision_tree_rules=decision_tree_rules
+        self._maxdepth = decision_tree_rules._maxDepth
         self._decision_rules_dict = decision_tree_rules.get_decision_rules()
         self._decision_path_dict = decision_tree_rules.get_path_dict()
         self._decision_tree_json = CommonUtils.as_dict(decision_tree_rules)
         self._decision_tree_raw = self._decision_rules_dict
+        if self._pandas_flag:
+            self.dummycols=decision_tree_rules.dummy_cols
         # self._decision_tree_raw = {"tree":{"children":None}}
         # self._decision_tree_raw['tree']["children"] = self._decision_tree_json['tree']["children"]
         self._table = decision_tree_rules.get_table()
@@ -97,7 +100,7 @@ class DecisionTreeNarrative(object):
         self._decisionTreeNode.set_name("Prediction")
         self._generate_narratives()
         # self._story_narrative.add_a_node(self._decisionTreeNode)
-        self._result_setter.set_decision_tree_node(self._decisionTreeNode,self._decision_tree_raw)
+        self._result_setter.set_decision_tree_node_classifier(self._decisionTreeNode,self._decision_tree_raw,self._maxdepth)
         self._result_setter.set_score_dtree_cards(json.loads(CommonUtils.convert_python_object_to_json(self._decisionTreeNode.get_all_cards())),self._decision_tree_raw)
 
         self._completionStatus = self._dataframe_context.get_completion_status()
@@ -245,7 +248,10 @@ class DecisionTreeNarrative(object):
                 if binnedColObj != None and targetCol in binnedColObj:
                     binFlag = True
             for idx2,crudeRule in enumerate(rulesArray):
-                richRule,crudeRule,paths_to_collapse = NarrativesUtils.generate_rules(self._colname,target,crudeRule, success[idx2], freqArray[idx2], success_percent[idx2],analysisType,self._decision_path_dict.copy(),binFlag=binFlag)
+                if self._pandas_flag:
+                    richRule,crudeRule,paths_to_collapse = NarrativesUtils.generate_rules(self._colname,target,crudeRule, success[idx2], freqArray[idx2], success_percent[idx2],analysisType,self._decision_path_dict.copy(),binFlag=binFlag,dummycols=self.dummycols,pandas_flag=self._pandas_flag)
+                else:
+                    richRule,crudeRule,paths_to_collapse = NarrativesUtils.generate_rules(self._colname,target,crudeRule, success[idx2], freqArray[idx2], success_percent[idx2],analysisType,self._decision_path_dict.copy(),binFlag=binFlag,dummycols=None,pandas_flag=self._pandas_flag)
                 richRulesArray.append(richRule)
                 crudeRuleArray.append(crudeRule)
                 collapseArray.append(paths_to_collapse)

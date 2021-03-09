@@ -113,8 +113,8 @@ class Binner(object):
         if min_value==max_value:
             histogram = Histogram(column_name, self._num_rows)
             bin_number = 0
-            start_value = min_value-0.5
-            end_value = max_value+0.5
+            start_value = int(min_value-0.5)
+            end_value = int(max_value+0.5)
             histogram.add_bin(bin_number, start_value, end_value, self._num_rows)
         else:
             if self._pandas_flag:
@@ -126,9 +126,9 @@ class Binner(object):
                     start_value = splits[bin_number]
                     end_value = splits[bin_number + 1]
                     try:
-                        histogram.add_bin(bin_number, start_value, end_value, row[1][1])
+                        histogram.add_bin(bin_number, float(start_value), float(end_value), float(row[1][1]))
                     except:
-                        histogram.add_bin(bin_number, float(start_value), float(end_value), row[1][1])
+                        histogram.add_bin(bin_number, start_value, end_value, float(row[1][1]))
             else:
                 buckets_and_counts = bucketizer.transform(column_df).groupBy(BinnerConstants.BINNED_COLUMN_NAME).agg({'*': 'count'}).collect()
                 histogram = Histogram(column_name, self._num_rows)

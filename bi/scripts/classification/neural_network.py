@@ -9,6 +9,7 @@ from builtins import object
 from past.utils import old_div
 import json
 import time
+import re
 
 import humanize
 import numpy as np
@@ -20,7 +21,10 @@ try:
 except:
     import pickle
 
-from sklearn.externals import joblib
+try:
+    from sklearn.externals import joblib
+except:
+    import joblib
 from sklearn import metrics
 from sklearn2pmml import sklearn2pmml
 from sklearn2pmml import PMMLPipeline
@@ -66,7 +70,13 @@ class NeuralNetworkScript(object):
         self._slug = self._model_slug_map["Neural Network (Sklearn)"]
         self._targetLevel = self._dataframe_context.get_target_level_for_model()
         self._datasetName = CommonUtils.get_dataset_name(self._dataframe_context.CSV_FILE)
-
+        try:
+            if not self._pandas_flag:
+                self._data_frame = self._data_frame.toPandas()
+                self._data_frame.columns = [re.sub("[[]|[]]|[<]","", col) for col in self._data_frame.columns.values]
+                self._dataframe_helper.set_train_test_data(self._data_frame)
+        except:
+            pass
         self._completionStatus = self._dataframe_context.get_completion_status()
         print(self._completionStatus,"initial completion status")
         self._analysisName = self._slug
@@ -393,9 +403,14 @@ class NeuralNetworkScript(object):
                 runtime = round((time.time() - hyper_st),2)
 
             try:
-                modelPmmlPipeline = PMMLPipeline([
-                  ("pretrained-estimator", objs["trained_model"])
-                ])
+                if automl_enable:
+                    modelPmmlPipeline = PMMLPipeline([
+                        ("pretrained-estimator", objs["trained_model"].bestEstimator)
+                    ])
+                else:
+                    modelPmmlPipeline = PMMLPipeline([
+                        ("pretrained-estimator", objs["trained_model"])
+                    ])
                 modelPmmlPipeline.target_field = result_column
                 modelPmmlPipeline.active_fields = np.array([col for col in x_train.columns if col != result_column])
                 sklearn2pmml(modelPmmlPipeline, pmml_filepath, with_repr = True)

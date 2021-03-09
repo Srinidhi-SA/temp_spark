@@ -93,9 +93,9 @@ class DataFrameFilterer(object):
         colname = colname.lstrip('0123456789. ')
         if self._pandas_flag:
             if less_than_equal==0:
-                self._data_frame = self._data_frame[(self._data_frame[colname]  < end_value)]
+                self._data_frame = self._data_frame[(self._data_frame[colname] < end_value)]
             elif less_than_equal==1:
-                self._data_frame = self._data_frame[(self._data_frame[colname]  <= end_value)]
+                self._data_frame = self._data_frame[(self._data_frame[colname] <= end_value)]
         else:
             if less_than_equal==0:
                 self._data_frame = self._data_frame.filter(col(colname) < end_value)
