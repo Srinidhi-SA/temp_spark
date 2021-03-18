@@ -29,7 +29,7 @@ from pyspark.ml.evaluation import BinaryClassificationEvaluator
 from pyspark.ml.feature import IndexToString
 from pyspark.sql.functions import udf,col
 from pyspark.sql.types import *
-
+import pyspark.sql.functions as F
 from pyspark.ml.classification import LogisticRegression, OneVsRest
 from pyspark2pmml import PMMLBuilder
 
@@ -271,7 +271,8 @@ class LogisticRegressionPysparkScript(object):
         modelmanagement_={param[0].name:param[1] for param in bestModel.stages[2].extractParamMap().items()}
         MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
-        label_classes = prediction.select("label").distinct().collect()
+        # label_classes = prediction.select("label").distinct().collect()
+        label_classes = prediction.agg((F.collect_set('label').alias('label'))).first().asDict()['label']
         #results = transformed.select(["prediction","label"])
         # if len(label_classes) > 2:
         #     metrics = MulticlassMetrics(predsAndLabels)

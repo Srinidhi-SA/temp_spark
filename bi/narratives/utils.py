@@ -28,7 +28,7 @@ except:
 import pyspark.sql.functions as PysparkFN
 from pyspark.sql import DataFrame
 from pyspark.sql.types import *
-
+import pyspark.sql.functions as F
 from bi.common import HtmlData
 from bi.common import utils as CommonUtils
 from bi.common.decorators import accepts
@@ -538,7 +538,8 @@ def calculate_level_contribution(df, columns, index_col, dateColDateFormat, valu
             column_levels = meta_parser.get_unique_level_names(column_name)
         except:
             if not pandas_flag:
-                column_levels = [x[0] for x in df.select(column_name).distinct().collect()]
+                #column_levels = [x[0] for x in df.select(column_name).distinct().collect()]
+                column_levels = df.agg((F.collect_set(column_name).alias(column_name))).first().asDict()[column_name]
             else:
                 column_levels = list(df[column_name].unique())
         out[column_name] = dict(list(zip(column_levels,[data_dict]*len(column_levels))))

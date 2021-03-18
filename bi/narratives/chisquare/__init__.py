@@ -26,6 +26,7 @@ from pyspark.ml import Pipeline
 import pandas as pd
 from pyspark.sql import SQLContext
 from pyspark.sql.types import *
+import pyspark.sql.functions as f
 
 class ChiSquareNarratives(object):
     #@accepts(object, int, DFChiSquareResult ,ContextSetter)
@@ -187,7 +188,7 @@ class ChiSquareNarratives(object):
         else:
             num_var = [col[0] for col in clean_df.dtypes if ((col[1]=='int') | (col[1]=='double')) & (col[0]!=target_dimension[0])]
             num_var = [col for col in num_var if not col.endswith('indexed')]
-            labels_count = [len(clean_df.select(col).distinct().collect()) for col in num_var]
+            labels_count = [len(clean_df.agg((F.collect_set(col).alias(col))).first().asDict()[col]) for col in num_var]
             labels_count.sort()
             max_count =  labels_count[-1]
             label_indexes = StringIndexer(inputCol = target_dimension[0] , outputCol = 'label', handleInvalid = 'keep')

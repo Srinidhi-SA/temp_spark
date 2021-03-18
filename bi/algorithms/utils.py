@@ -28,6 +28,7 @@ from pyspark.ml.feature import OneHotEncoder
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel
 from pyspark.sql import functions as FN
+import pyspark.sql.functions as F
 from pyspark.sql.functions import lit
 from pyspark.sql.functions import mean, stddev, col, count, sum
 from pyspark.sql.functions import monotonically_increasing_id
@@ -661,8 +662,7 @@ def load_logistic_model(filepath):
 
 
 def stratified_sampling(df, target_column, split):
-    levels = [x[0] for x in df.select(target_column).distinct().collect()]
-
+    levels = df.agg((F.collect_set(target_column).alias(target_column))).first().asDict()[target_column]
     frac = [split]*len(levels)
     sampling_dict = dict(list(zip(levels,frac)))
     sampled_df = df.sampleBy(target_column, fractions = sampling_dict, seed=0)
@@ -693,7 +693,7 @@ def calculate_sparkml_feature_importance(df, modelFit, categorical_columns, nume
     end_idx = 0
     for level in sorted(categorical_columns):
         # Not calling from meta here now, as this function is called only in logistic_regression_pyspark and random_forest_pyspark
-        count = len(df.select(level).distinct().collect())
+        count = df.agg((F.countDistinct(level).alias(level))).first().asDict()[level]
         end_idx += count
         col_percentage = 0
         for key in range(start_idx, end_idx):
@@ -2171,8 +2171,13 @@ def get_quantile_summary(df, colname):
         splitRanges[0] = (splitRanges[0][0]+biasVal,splitRanges[0][1])
         splitRanges[-1] = (splitRanges[-1][0]+biasVal,splitRanges[-1][1]-biasVal)
         bucketizer = Bucketizer(inputCol=colname,outputCol="buckGULSHAN")
-        bucketizer.setSplits(splits)
-        df = bucketizer.transform(df)
+        try:
+            bucketizer.setSplits(splits)
+            df = bucketizer.transform(df)
+        except:
+            splits = [-float("inf"), -1,1,100, float("inf")]
+            bucketizer.setSplits(splits)
+            df = bucketizer.transform(df)
         # print df.show()
 
     quantileGrpDf = df.groupby("buckGULSHAN").agg(FN.sum(colname).alias('sum'), FN.mean(colname).alias('mean'),
@@ -2372,7 +2377,7 @@ def stock_sense_overview_card(data_dict_overall):
     chart_json = ChartJson()
     chart_json.set_data(priceTrendData.get_data())
     chart_json.set_subchart(False)
-    chart_json.set_title("Stock Performance Analysis")
+    chart_json.set_title("Stock Price Trend")
     chart_json.set_label_text({"x":"DATE","y":"Close Price "})
     chart_json.set_chart_type("line")
     chart_json.set_yaxis_number_format(".d")

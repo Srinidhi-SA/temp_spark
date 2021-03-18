@@ -120,9 +120,10 @@ class FeatureSelection():
                 indexed = indexer.fit(self.data_frame).transform(self.data_frame)
                 X_train = indexed.drop('label')
                 num_var = [i[0] for i in X_train.dtypes if ((i[1]=='int') | (i[1]=='double'))]
+                num_of_samples = indexed.select(num_var[0]).count()
                 for column_one in num_var:
                     corr = indexed.corr(column_one, 'label')
-                    num_of_samples = indexed.select(column_one).count()
+                    # num_of_samples = indexed.select(column_one).count()
                     df = num_of_samples - 2
                     std_error = math.sqrt(old_div((1 - math.pow(corr, 2)), df))
                     t_value = old_div(corr, std_error)
