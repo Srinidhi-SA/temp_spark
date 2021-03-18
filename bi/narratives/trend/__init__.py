@@ -422,8 +422,8 @@ class TimeSeriesNarrative(object):
                         if self._pandas_flag:
                             result_column_levels = list(self._data_frame[self._result_column].unique())
                         else:
-                            # result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
-                            result_column_levels = self._data_frame.agg((F.collect_set(self._result_column).alias(self._result_column))).first().asDict()[self._result_column]
+                            result_column_levels = [x[0] for x in self._data_frame.select(self._result_column).distinct().collect()]
+                            # result_column_levels = self._data_frame.agg((F.collect_set(self._result_column).alias(self._result_column))).first().asDict()[self._result_column]
 
                     print("-"*100)
                     # TODO Implement meta parser getter here

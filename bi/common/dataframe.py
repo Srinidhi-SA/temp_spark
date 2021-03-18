@@ -331,7 +331,8 @@ class DataFrameHelper(object):
         if self._pandas_flag:
             return list(self._data_frame[column_name].unique())
         else:
-            return df.agg((F.collect_set(column_name).alias(column_name))).first().asDict()[column_name]
+            return [levels[0] for levels in self._data_frame.select(column_name).distinct().collect()]
+    # return df.agg((F.collect_set(column_name).alias(column_name))).first().asDict()[column_name]
 
     def get_num_unique_values(self,column_name):
         if self._pandas_flag:

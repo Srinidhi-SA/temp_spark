@@ -243,7 +243,8 @@ def get_level_count_dict(df,categorical_columns,separator,output_type="string",d
     out = []
     for col in categorical_columns:
         if dataType == "spark":
-            count_dict[col] = df.agg((F.countDistinct(col).alias(col))).first().asDict()[col]
+            count_dict[col] = len(df.select(col).distinct().collect())
+            # count_dict[col] = df.agg((F.countDistinct(col).alias(col))).first().asDict()[col]
         else:
             count_dict[col] = len(df[col].unique())
         out.append(col)

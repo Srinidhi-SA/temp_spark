@@ -508,10 +508,10 @@ class LinearRegressionNarrative(object):
                         outputCol="BINNED_INDEX")
         bucketizer.setSplits(splits)
         binned_df = bucketizer.transform(double_df)
-        # unique_bins = binned_df.select("BINNED_INDEX").distinct().collect()
-        # unique_bins = [int(x[0]) for x in unique_bins]
-        unique_bins = binned_df.agg((F.collect_set('BINNED_INDEX').alias('BINNED_INDEX'))).first().asDict()['BINNED_INDEX']
-        unique_bins = [int(x) for x in unique_bins]
+        unique_bins = binned_df.select("BINNED_INDEX").distinct().collect()
+        unique_bins = [int(x[0]) for x in unique_bins]
+        # unique_bins = binned_df.agg((F.collect_set('BINNED_INDEX').alias('BINNED_INDEX'))).first().asDict()['BINNED_INDEX']
+        # unique_bins = [int(x) for x in unique_bins]
         binned_index_dict = dict(list(zip(unique_bins,splits_data["splits_range"])))
         output = {"bins":binned_index_dict,"data":binned_df}
         return output

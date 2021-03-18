@@ -244,7 +244,7 @@ class RandomForestPysparkScript(object):
         MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
         # label_classes = prediction.select("label").distinct().collect()
-        label_classes = prediction.agg((F.collect_set('label').alias('label'))).first().asDict()['label']
+        # label_classes = prediction.agg((F.collect_set('label').alias('label'))).first().asDict()['label']
 
         # prediction.select(["features", "label", "rawPrediction", "probability", "prediction"]).show()
         # print("$"*143)

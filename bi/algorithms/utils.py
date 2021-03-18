@@ -662,7 +662,8 @@ def load_logistic_model(filepath):
 
 
 def stratified_sampling(df, target_column, split):
-    levels = df.agg((F.collect_set(target_column).alias(target_column))).first().asDict()[target_column]
+    levels = [x[0] for x in df.select(target_column).distinct().collect()]
+    # levels = df.agg((F.collect_set(target_column).alias(target_column))).first().asDict()[target_column]
     frac = [split]*len(levels)
     sampling_dict = dict(list(zip(levels,frac)))
     sampled_df = df.sampleBy(target_column, fractions = sampling_dict, seed=0)
@@ -693,7 +694,8 @@ def calculate_sparkml_feature_importance(df, modelFit, categorical_columns, nume
     end_idx = 0
     for level in sorted(categorical_columns):
         # Not calling from meta here now, as this function is called only in logistic_regression_pyspark and random_forest_pyspark
-        count = df.agg((F.countDistinct(level).alias(level))).first().asDict()[level]
+        count = len(df.select(level).distinct().collect())
+        # count = df.agg((F.countDistinct(level).alias(level))).first().asDict()[level]
         end_idx += count
         col_percentage = 0
         for key in range(start_idx, end_idx):

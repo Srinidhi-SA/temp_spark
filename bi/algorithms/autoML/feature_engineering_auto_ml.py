@@ -91,7 +91,8 @@ class FeatureEngineeringAutoML():
         self.data_frame = self.data_frame.toDF(*cols)
         self.data_change_dict['one_hot_encoded'] = col_list
     def cat_en_rule(self,cat_col):
-        labels_count = [[len(self.data_frame.agg((F.collect_set(col).alias(col))).first().asDict()[col])-1,col] for col in cat_col]
+        labels_count = [[len(self.data_frame.select(col).distinct().collect())-1,col] for col in cat_col]
+        # labels_count = [[len(self.data_frame.agg((F.collect_set(col).alias(col))).first().asDict()[col])-1,col] for col in cat_col]
         labels_count.sort()
         dum_col = []
         n,p = self.data_frame.count(),len(self.data_frame.dtypes)
