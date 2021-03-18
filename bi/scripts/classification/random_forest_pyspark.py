@@ -41,7 +41,7 @@ from pyspark.mllib.evaluation import BinaryClassificationMetrics, MulticlassMetr
 from pyspark.ml.feature import IndexToString
 from pyspark.sql.functions import udf,col
 from pyspark.sql.types import *
-
+import pyspark.sql.functions as F
 from bi.settings import setting as GLOBALSETTINGS
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel
@@ -243,7 +243,8 @@ class RandomForestPysparkScript(object):
         modelmanagement_={param[0].name:param[1] for param in bestModel.stages[2].extractParamMap().items()}
         MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
-        label_classes = prediction.select("label").distinct().collect()
+        # label_classes = prediction.select("label").distinct().collect()
+        label_classes = prediction.agg((F.collect_set('label').alias('label'))).first().asDict()['label']
 
         # prediction.select(["features", "label", "rawPrediction", "probability", "prediction"]).show()
         # print("$"*143)

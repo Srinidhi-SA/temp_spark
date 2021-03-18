@@ -43,7 +43,7 @@ from bi.settings import setting as GLOBALSETTINGS
 from pyspark.ml.feature import StringIndexer, VectorAssembler
 from pyspark.ml.pipeline import PipelineModel
 from pyspark.ml.classification import GBTClassifier, OneVsRest,DecisionTreeClassifier
-
+import pyspark.sql.functions as F
 
 
 # os.environ['PYSPARK_SUBMIT_ARGS'] = "--jars xgboost4j-spark-0.72.jar,xgboost4j-0.72.jar pyspark-shell"
@@ -262,7 +262,8 @@ class XGBoostPysparkScript(object):
         modelmanagement_={param[0].name:param[1] for param in bestModel.stages[2].extractParamMap().items()}
         MLUtils.save_pipeline_or_model(bestModel,model_filepath)
         predsAndLabels = prediction.select(['prediction', 'label']).rdd.map(tuple)
-        label_classes = prediction.select("label").distinct().collect()
+        # label_classes = prediction.select("label").distinct().collect()
+        label_classes = prediction.agg((F.collect_set('label').alias('label'))).first().asDict()['label']
         # if len(label_classes) > 2:
         #     metrics = MulticlassMetrics(predsAndLabels) # accuracy of the model
         # else:
