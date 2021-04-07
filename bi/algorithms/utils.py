@@ -1357,90 +1357,95 @@ def create_model_management_deploy_empty_card():
 def create_model_management_cards(modelSummaryClass, final_roc_df):
     if modelSummaryClass.get_model_type() == None or modelSummaryClass.get_model_type() == "classification":
         def chart_data_prep(df,column_names,label,chart_type,subchart):
-            ChartData = df[column_names]
-            ChartData = ChartData.to_dict('record')
-            if "False Positive Rate" in label:
-                data = {}
-                data["ROC Curve"] = ChartData
-                data["Reference Line"] = [{"FPR" : 0.0, "TPR" : 0.0}, {"FPR" : 1.0, "TPR" : 1.0}]
-                ChartData = ScatterChartData(data=data)
-                chart_json = ChartJson()
-                chart_json.set_data(ChartData.get_data())
-                chart_json.set_chart_type(chart_type)
-                chart_json.set_axes({"x" : "FPR", "y" : "TPR"})
-                chart_json.set_label_text({"x":label[0],"y":label[1]})
-                chart_json.set_subchart(subchart)
-                chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".0f")
-                chart_json.set_legend({"a1":"ROC Curve","b1":"Reference Line"})
-                chart_json.set_point_radius(2.0)
-            elif "% Responders(Cumulative)" in label:
-                data = {}
-                #ChartData.insert(0, {"% Population(Cumulative)" : 0.0, "% Responders(Cumulative)" : 0.0})
-                data["Reference Line"] = [{"% Population(Cumulative)" : 0, "% Responders(Cumulative)" : 0},
-                {"% Population(Cumulative)" : 10.0, "% Responders(Cumulative)" : 10.0},
-                {"% Population(Cumulative)" : 20.0, "% Responders(Cumulative)" : 20.0},
-                {"% Population(Cumulative)" : 30.0, "% Responders(Cumulative)" : 30.0},
-                {"% Population(Cumulative)" : 40.0, "% Responders(Cumulative)" : 40.0},
-                {"% Population(Cumulative)" : 50.0, "% Responders(Cumulative)" : 50.0},
-                {"% Population(Cumulative)" : 60.0, "% Responders(Cumulative)" : 60.0},
-                {"% Population(Cumulative)" : 70.0, "% Responders(Cumulative)" : 70.0},
-                {"% Population(Cumulative)" : 80.0, "% Responders(Cumulative)" : 80.0},
-                {"% Population(Cumulative)" : 90.0, "% Responders(Cumulative)" : 90.0},
-                {"% Population(Cumulative)" : 100.0, "% Responders(Cumulative)" : 100.0}]
-                # x axis for gain chart
-                for i,j in zip(list(range(10)),data["Reference Line"][1:]):
-                        j['% Population(Cumulative)'] = ChartData[i]['% Population(Cumulative)']
-                data["Gain Chart"] = ChartData
+            try:
+                if df.empty:
+                    chart_json = []
+                else:
+                    ChartData = df[column_names]
+                    ChartData = ChartData.to_dict('record')
+                    if "False Positive Rate" in label:
+                        data = {}
+                        data["ROC Curve"] = ChartData
+                        data["Reference Line"] = [{"FPR" : 0.0, "TPR" : 0.0}, {"FPR" : 1.0, "TPR" : 1.0}]
+                        ChartData = ScatterChartData(data=data)
+                        chart_json = ChartJson()
+                        chart_json.set_data(ChartData.get_data())
+                        chart_json.set_chart_type(chart_type)
+                        chart_json.set_axes({"x" : "FPR", "y" : "TPR"})
+                        chart_json.set_label_text({"x":label[0],"y":label[1]})
+                        chart_json.set_subchart(subchart)
+                        chart_json.set_xaxis_number_format(".2f")
+                        chart_json.set_yaxis_number_format(".0f")
+                        chart_json.set_legend({"a1":"ROC Curve","b1":"Reference Line"})
+                        chart_json.set_point_radius(2.0)
+                    elif "% Responders(Cumulative)" in label:
+                        data = {}
+                        #ChartData.insert(0, {"% Population(Cumulative)" : 0.0, "% Responders(Cumulative)" : 0.0})
+                        data["Reference Line"] = [{"% Population(Cumulative)" : 0, "% Responders(Cumulative)" : 0},
+                        {"% Population(Cumulative)" : 10.0, "% Responders(Cumulative)" : 10.0},
+                        {"% Population(Cumulative)" : 20.0, "% Responders(Cumulative)" : 20.0},
+                        {"% Population(Cumulative)" : 30.0, "% Responders(Cumulative)" : 30.0},
+                        {"% Population(Cumulative)" : 40.0, "% Responders(Cumulative)" : 40.0},
+                        {"% Population(Cumulative)" : 50.0, "% Responders(Cumulative)" : 50.0},
+                        {"% Population(Cumulative)" : 60.0, "% Responders(Cumulative)" : 60.0},
+                        {"% Population(Cumulative)" : 70.0, "% Responders(Cumulative)" : 70.0},
+                        {"% Population(Cumulative)" : 80.0, "% Responders(Cumulative)" : 80.0},
+                        {"% Population(Cumulative)" : 90.0, "% Responders(Cumulative)" : 90.0},
+                        {"% Population(Cumulative)" : 100.0, "% Responders(Cumulative)" : 100.0}]
+                        # x axis for gain chart
+                        for i,j in zip(list(range(10)),data["Reference Line"][1:]):
+                                j['% Population(Cumulative)'] = ChartData[i]['% Population(Cumulative)']
+                        data["Gain Chart"] = ChartData
 
 
 
-                ChartData = ScatterChartData(data=data)
-                chart_json = ChartJson()
-                chart_json.set_data(ChartData.get_data())
-                chart_json.set_chart_type(chart_type)
-                chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
-                chart_json.set_label_text({"x":label[0],"y":label[1]})
-                #chart_json.set_subchart(subchart)
-                chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".0f")
-                chart_json.set_legend({"a1":"Gain Chart","b1":"Reference Line"})
-                chart_json.set_point_radius(2.0)
-                # ChartData = NormalChartData(data=ChartData)
-                # chart_json = ChartJson()
-                # chart_json.set_data(ChartData.get_data())
-                # chart_json.set_chart_type(chart_type)
-                # chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
-                # chart_json.set_label_text({"x":label[0],"y":label[1]})
-                # chart_json.set_subchart(subchart)
-                # chart_json.set_xaxis_number_format(".2f")
-                # chart_json.set_yaxis_number_format(".4f")
-            elif "Lift @ Decile" in label:
-                data = {}
-                data["Lift Chart"] = ChartData
-                data["Reference Line"] = [{"% Population(Cumulative)" : 10.0, "Lift at Decile" : 100.0}, {"% Population(Cumulative)" : 100.0, "Lift at Decile" : 100.0}]
-                ChartData = ScatterChartData(data=data)
-                chart_json = ChartJson()
-                chart_json.set_data(ChartData.get_data())
-                chart_json.set_chart_type(chart_type)
-                chart_json.set_axes({"x" : "% Population(Cumulative)", "y" : "Lift at Decile"})
-                chart_json.set_label_text({"x":label[0],"y":label[1]})
-                chart_json.set_subchart(subchart)
-                chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".0f")
-                chart_json.set_legend({"a1":"Lift Chart","b1":"Reference Line"})
-                chart_json.set_point_radius(5.0)
-            else:
-                ChartData = NormalChartData(data=ChartData)
-                chart_json = ChartJson()
-                chart_json.set_data(ChartData.get_data())
-                chart_json.set_chart_type(chart_type)
-                chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
-                chart_json.set_label_text({"x":label[0],"y":label[1]})
-                chart_json.set_subchart(subchart)
-                chart_json.set_xaxis_number_format(".2f")
-                chart_json.set_yaxis_number_format(".0f")
-
+                        ChartData = ScatterChartData(data=data)
+                        chart_json = ChartJson()
+                        chart_json.set_data(ChartData.get_data())
+                        chart_json.set_chart_type(chart_type)
+                        chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
+                        chart_json.set_label_text({"x":label[0],"y":label[1]})
+                        #chart_json.set_subchart(subchart)
+                        chart_json.set_xaxis_number_format(".2f")
+                        chart_json.set_yaxis_number_format(".0f")
+                        chart_json.set_legend({"a1":"Gain Chart","b1":"Reference Line"})
+                        chart_json.set_point_radius(2.0)
+                        # ChartData = NormalChartData(data=ChartData)
+                        # chart_json = ChartJson()
+                        # chart_json.set_data(ChartData.get_data())
+                        # chart_json.set_chart_type(chart_type)
+                        # chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
+                        # chart_json.set_label_text({"x":label[0],"y":label[1]})
+                        # chart_json.set_subchart(subchart)
+                        # chart_json.set_xaxis_number_format(".2f")
+                        # chart_json.set_yaxis_number_format(".4f")
+                    elif "Lift @ Decile" in label:
+                        data = {}
+                        data["Lift Chart"] = ChartData
+                        data["Reference Line"] = [{"% Population(Cumulative)" : 10.0, "Lift at Decile" : 100.0}, {"% Population(Cumulative)" : 100.0, "Lift at Decile" : 100.0}]
+                        ChartData = ScatterChartData(data=data)
+                        chart_json = ChartJson()
+                        chart_json.set_data(ChartData.get_data())
+                        chart_json.set_chart_type(chart_type)
+                        chart_json.set_axes({"x" : "% Population(Cumulative)", "y" : "Lift at Decile"})
+                        chart_json.set_label_text({"x":label[0],"y":label[1]})
+                        chart_json.set_subchart(subchart)
+                        chart_json.set_xaxis_number_format(".2f")
+                        chart_json.set_yaxis_number_format(".0f")
+                        chart_json.set_legend({"a1":"Lift Chart","b1":"Reference Line"})
+                        chart_json.set_point_radius(5.0)
+                    else:
+                        ChartData = NormalChartData(data=ChartData)
+                        chart_json = ChartJson()
+                        chart_json.set_data(ChartData.get_data())
+                        chart_json.set_chart_type(chart_type)
+                        chart_json.set_axes({"x":column_names[0],"y":column_names[1]})
+                        chart_json.set_label_text({"x":label[0],"y":label[1]})
+                        chart_json.set_subchart(subchart)
+                        chart_json.set_xaxis_number_format(".2f")
+                        chart_json.set_yaxis_number_format(".0f")
+            except:
+                chart_json = []
             return chart_json
 
         #modelPerformanceCardData = []
@@ -1528,7 +1533,8 @@ def create_model_management_cards(modelSummaryClass, final_roc_df):
         '''KS CHART'''
         KSCardData = []
         chartjson = chart_data_prep(gain_lift_KS_data,['% Population(Cumulative)', '% Responders(Cumulative)', '% Non-Responders(Cumulative)'], ['% Population(Cumulative)','% Count'],'line',True)
-        chartjson.set_legend({"% Responders(Cumulative)" : "Percentage of Responders(Cumulative)", "% Non-Responders(Cumulative)" : "Percentage of Non-Responders(Cumulative)"})
+        if chartjson != []:
+            chartjson.set_legend({"% Responders(Cumulative)" : "Percentage of Responders(Cumulative)", "% Non-Responders(Cumulative)" : "Percentage of Non-Responders(Cumulative)"})
         KSChart = C3ChartData(data=chartjson)
         KSChart.set_width_percent(100)
         KSChartName = HtmlData(data="<h4 class = 'sm-ml-15 sm-pb-10'>KS Chart</h4>")

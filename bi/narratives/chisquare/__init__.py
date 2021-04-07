@@ -26,7 +26,7 @@ from pyspark.ml import Pipeline
 import pandas as pd
 from pyspark.sql import SQLContext
 from pyspark.sql.types import *
-import pyspark.sql.functions as f
+import pyspark.sql.functions as F
 
 class ChiSquareNarratives(object):
     #@accepts(object, int, DFChiSquareResult ,ContextSetter)

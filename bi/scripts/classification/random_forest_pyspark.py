@@ -291,8 +291,13 @@ class RandomForestPysparkScript(object):
             gain_lift_ks_obj = GainLiftKS(pys_df, 'y_prob_for_eval', 'prediction', 'label', posLabel, self._spark)
             gain_lift_KS_dataframe = gain_lift_ks_obj.Run().toPandas()
         except:
-            print("gain chart failed")
-            pass
+            try:
+                temp_df = pys_df.toPandas()
+                gain_lift_ks_obj = GainLiftKS(temp_df, 'y_prob_for_eval', 'prediction', 'label', posLabel, self._spark)
+                gain_lift_KS_dataframe = gain_lift_ks_obj.Rank_Ordering()
+            except:
+                print("gain chant failed")
+                gain_lift_KS_dataframe = None
 
 
         act_list = prediction.select('label').collect()
