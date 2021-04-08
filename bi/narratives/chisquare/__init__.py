@@ -179,6 +179,7 @@ class ChiSquareNarratives(object):
                 clean_df = FeatureEngineeringAutoML_obj.data_frame
         if self._pandas_flag:
             ind_var = clean_df.drop(target_dimension[0],1)
+            ind_var = ind_var[ind_var._get_numeric_data().columns]
             target = clean_df[target_dimension[0]]
             dtree = DecisionTreeClassifier(criterion='gini', max_depth=5, random_state=42)
             dtree.fit(ind_var, target)
